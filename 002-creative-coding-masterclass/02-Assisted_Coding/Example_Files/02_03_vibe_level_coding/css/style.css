@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Remove default spacing and make the page span the full viewport. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  /* Prevent browser scrollbars while rendering a full-screen canvas. */
+  overflow: hidden;
+}
+
+/* Remove inline spacing behavior from canvas elements. */
+canvas {
+  display: block;
+  cursor: none; /* replaced by the custom crosshair drawn in sketch.js */
+}
+

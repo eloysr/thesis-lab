@@ -19,7 +19,7 @@
  */
 
 const bubbles = [];
-const bubbleCount = 3;
+const bubbleCount = 100;
 const bubbleColors = [
   "#FF0000",
   "#FFFF00",
@@ -37,14 +37,14 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
 
   // Create a single bubble with specific properties and add it to the bubbles array.
-  const bubble = new Bubble(200, 100, 40, 2, 1, "#FFFFFF");
-  bubbles.push(bubble);
+  // const bubble = new Bubble(200, 100, 40, 2, 1, "#FFFFFF");
+  // bubbles.push(bubble);
 
   // Create multiple bubble objects with random properties and add them to the bubbles array.
-  // for (let i = 0; i < bubbleCount; i++) {
-  //   const bubble = createRandomBubble();
-  //   bubbles.push(bubble);
-  // }
+  for (let i = 0; i < bubbleCount; i++) {
+    const bubble = createRandomBubble();
+    bubbles.push(bubble);
+  }
 }
 
 function draw() {
