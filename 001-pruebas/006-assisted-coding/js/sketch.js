@@ -10,10 +10,6 @@ function setup() {
   const botonBorrar = createButton('Borrar dibujo'); // segundo <button> HTML
   botonBorrar.position(10, 40); // 40px por debajo del botón de guardar
   botonBorrar.mousePressed(borrarDibujo); // al hacer clic, ejecuta borrarDibujo()
-
-  const botonVolver = createButton('Back to index');
-  botonVolver.position(10, windowHeight - 40);
-  botonVolver.mousePressed(() => window.location.href = '../index.html');
 }
 
 function windowResized() {
