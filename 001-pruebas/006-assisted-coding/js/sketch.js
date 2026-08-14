@@ -22,9 +22,13 @@ function windowResized() {
 }
 
 function draw() {
-  if (mouseIsPressed) {
-    stroke(0); // color del trazo: negro
-    line(pmouseX, pmouseY, mouseX, mouseY); // línea del punto anterior al punto actual
+  if (mouseIsPressed || touches.length > 0) {
+    stroke(0);
+    if (touches.length > 0) {
+      line(pmouseX, pmouseY, touches[0].x, touches[0].y);
+    } else {
+      line(pmouseX, pmouseY, mouseX, mouseY);
+    }
   }
 }
 
