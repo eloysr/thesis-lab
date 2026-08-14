@@ -12,7 +12,7 @@ function setup() {
   botonBorrar.mousePressed(borrarDibujo); // al hacer clic, ejecuta borrarDibujo()
 
   const botonVolver = createButton('Back to index');
-  botonVolver.position(10, windowHeight - 40);
+  botonVolver.position(10, 70);
   botonVolver.mousePressed(() => window.location.href = '../index.html');
 }
 
