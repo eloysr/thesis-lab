@@ -16,8 +16,4 @@ body {
 /* Remove inline spacing behavior from canvas elements. */
 canvas {
   display: block;
-  cursor: none; /* replaced by the custom crosshair drawn in sketch.js */
 }
-
-
-
