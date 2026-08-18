@@ -13,7 +13,7 @@ function setup() {
 
   const botonVolver = createButton('Back to index');
   botonVolver.position(10, 70);
-  botonVolver.mousePressed(() => window.location.href = '../index.html');
+  botonVolver.mousePressed(() => window.location.href = 'https://eloysr.github.io/thesis-lab/index.html');
 }
 
 function windowResized() {
