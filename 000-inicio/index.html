@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>thesis-lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>thesis-lab</h1>
+    <p class="subtitulo">
+      Experimentos de código creativo y tipografía generativa. <br>Cuaderno de trabajo en curso. Creative coding master course. </p>
+  </header>
+
+  <section>
+    <h2>001 — Pruebas — Creative coding masterclass</h2>
+    <ul>
+      <li>
+        <a href="../001-pruebas/001-prueba-primera/">
+          <span class="num">001</span>
+          <span class="titulo">texto en movimiento</span>
+          <span class="desc">Datos externos vía API</span>
+        </a>
+      </li>
+      <li>
+        <a href="../001-pruebas/002-txt-dictado/">
+          <span class="num">002</span>
+          <span class="titulo">Texto dictado</span>
+          <span class="desc">Reconocimiento de voz</span>
+        </a>
+      </li>
+      <li>
+        <a href="../001-pruebas/003-txt-voz-alta-baja/">
+          <span class="num">003</span>
+          <span class="titulo">Voz alta / voz baja</span>
+          <span class="desc">Escala tipográfica según volumen</span>
+        </a>
+      </li>
+     <li>
+        <a href="../001-pruebas/004-my-dancing-type/">
+          <span class="num">004</span>
+          <span class="titulo">Dancing Type</span>
+          <span class="desc">datos externos via API</span>
+        </a>
+      </li>
+      <li>
+        <a href="../001-pruebas/005-prueba-aplicacion-p5/">
+          <span class="num">005</span>
+          <span class="titulo">Opciones de texto</span>
+          <span class="desc">sitio interactivo cambiando opciones de texto</span>
+        </a>
+      </li>
+      <li>
+        <a href="../001-pruebas/006-simple-drawing/">
+          <span class="num">006</span>
+          <span class="titulo">Simple Drawing tool</span>
+          <span class="desc">ejercicio assisted code & planning </span>
+        </a>
+      </li>
+      <li>
+        <a href="../001-pruebas/007-pixel-sorting">
+          <span class="num">007</span>
+          <span class="titulo">Pixel sorting</span>
+          <span class="desc">pixel sorting by different criteria, inspired by Kim Asendorf</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>002 — CCM Examples</h2>
+    <ul>
+      <li>
+        <a href="ccm-examples.html">
+          <span class="num">→</span>
+          <span class="titulo">Ver CCM Examples</span>
+          <span class="desc restricted-badge">Acceso restringido</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+<footer>
+    Eloy Segura ·
+    <a href="https://github.com/eloysr/thesis-lab">Repositorio en GitHub</a>
+    <span id="meta"></span>
+  </footer>
+
+  <script>
+    const VERSION = "v1.0"; // cambia esto cuando hagas una revisión importante
+
+    const fecha = new Date(document.lastModified);
+    const formateada = fecha.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    document.getElementById("meta").textContent = ` · ${VERSION} · ${formateada}`;
+  </script>
+
+</body>
+</html>

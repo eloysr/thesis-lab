@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCM Examples - thesis-lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Login Modal -->
+  <div id="loginContainer" class="login-container">
+    <div class="login-box">
+      <h2>Acceso restringido</h2>
+      <div id="errorMsg" class="error"></div>
+      <input type="password" id="passwordInput" placeholder="Contraseña" autocomplete="off">
+      <button onclick="checkPassword()">Acceder</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div id="content" class="content">
+    <div class="back-link">
+      <a href="../">← Volver</a>
+    </div>
+
+    <header>
+      <h1>CCM Examples</h1>
+    </header>
+
+    <section>
+      <h2>002 — CCM Examples</h2>
+      
+      <h3>01 — Coding Basics</h3>
+      <ul>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_01_p5js_basic_setup/">
+            <span class="num">01_01</span>
+            <span class="titulo">p5js basic setup</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_02_variables_datatypes_arrays_comments/">
+            <span class="num">01_02</span>
+            <span class="titulo">Variables, datatypes, arrays, comments</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_03_canvas/">
+            <span class="num">01_03</span>
+            <span class="titulo">Canvas</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_04_functions/">
+            <span class="num">01_04</span>
+            <span class="titulo">Functions</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_05_conditionals/">
+            <span class="num">01_05</span>
+            <span class="titulo">Conditionals</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_06_loops/">
+            <span class="num">01_06</span>
+            <span class="titulo">Loops</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/01-Coding_Basics/Example_Files/01_07_classes_objects/">
+            <span class="num">01_07</span>
+            <span class="titulo">Classes & Objects</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>02 — Assisted Coding</h3>
+      <ul>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_01_ask_mode/">
+            <span class="num">02_01</span>
+            <span class="titulo">Ask mode</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_02_commenting/">
+            <span class="num">02_02</span>
+            <span class="titulo">Commenting</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_03_vibe_level_coding/">
+            <span class="num">02_03</span>
+            <span class="titulo">Vibe level coding</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_04_design_level_coding/">
+            <span class="num">02_04</span>
+            <span class="titulo">Design level coding</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_05_debugging/">
+            <span class="num">02_05</span>
+            <span class="titulo">Debugging</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/02-Assisted_Coding/Example_Files/02_06_markdown_file/">
+            <span class="num">02_06</span>
+            <span class="titulo">Markdown file</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>03 — Digital Design Concepts</h3>
+      <ul>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_01_matrix_transformation/">
+            <span class="num">03_01</span>
+            <span class="titulo">Matrix transformation</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_02_shape/">
+            <span class="num">03_02</span>
+            <span class="titulo">Shape</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_03_bezier_curve/">
+            <span class="num">03_03</span>
+            <span class="titulo">Bezier curve</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_04_color/">
+            <span class="num">03_04</span>
+            <span class="titulo">Color</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_05_timing/">
+            <span class="num">03_05</span>
+            <span class="titulo">Timing</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_06_interpolation/">
+            <span class="num">03_06</span>
+            <span class="titulo">Interpolation</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/03-Digital_Design_Concepts/Example_Files/03_07_random_noise/">
+            <span class="num">03_07</span>
+            <span class="titulo">Random noise</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>04 — Example Files</h3>
+      <ul>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_01_image/">
+            <span class="num">04_01</span>
+            <span class="titulo">Image</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_02_video/">
+            <span class="num">04_02</span>
+            <span class="titulo">Video</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_03_camera/">
+            <span class="num">04_03</span>
+            <span class="titulo">Camera</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_04_drag_and_drop/">
+            <span class="num">04_04</span>
+            <span class="titulo">Drag and drop</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_05_typography/">
+            <span class="num">04_05</span>
+            <span class="titulo">Typography</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_06_sound/">
+            <span class="num">04_06</span>
+            <span class="titulo">Sound</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_07_fetch_weather_data/">
+            <span class="num">04_07</span>
+            <span class="titulo">Fetch weather data</span>
+          </a>
+        </li>
+        <li>
+          <a href="../002-CCM-examples/04-Example_Files/04_08_fetch_image/">
+            <span class="num">04_08</span>
+            <span class="titulo">Fetch image</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      Eloy Segura ·
+      <a href="https://github.com/eloysr/thesis-lab">Repositorio en GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+    const CORRECT_PASSWORD = "tesis2024"; // Cambiar por la contraseña deseada
+
+    function checkPassword() {
+      const input = document.getElementById('passwordInput');
+      const errorMsg = document.getElementById('errorMsg');
+      
+      if (input.value === CORRECT_PASSWORD) {
+        sessionStorage.setItem('ccmAccess', 'granted');
+        unlockContent();
+      } else {
+        errorMsg.textContent = 'Contraseña incorrecta';
+        errorMsg.classList.add('show');
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    function unlockContent() {
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('content').classList.add('unlocked');
+    }
+
+    function init() {
+      if (sessionStorage.getItem('ccmAccess') === 'granted') {
+        unlockContent();
+      } else {
+        document.getElementById('passwordInput').focus();
+      }
+    }
+
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkPassword();
+      }
+    });
+
+    init();
+  </script>
+
+</body>
+</html>
