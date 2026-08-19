@@ -31,7 +31,7 @@ let isStarted = false;
 
 // Preload function to load the audio before the sketch starts.
 function preload() {
-  mySound = loadSound('/assets/example.wav');
+  mySound = loadSound('assets/example.wav');
 }
 
 function setup() {

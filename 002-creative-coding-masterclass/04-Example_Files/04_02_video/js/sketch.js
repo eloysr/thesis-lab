@@ -24,8 +24,8 @@ let video;
 
 // Preload function to load the video before the sketch starts.
 function preload() {
-  video = createVideo('/assets/example.mp4');
-  mask = loadImage('/assets/mask.png');
+  video = createVideo('assets/example.mp4');
+  mask = loadImage('assets/mask.png');
 
   // Hide the default video element.
   video.hide();

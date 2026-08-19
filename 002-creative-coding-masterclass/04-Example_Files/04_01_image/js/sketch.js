@@ -30,8 +30,8 @@ let mask;
 // Preload function to load the image before the sketch starts.
 function preload() {
   // Load the image and create a p5.Image object.
-  img = loadImage('/assets/example.png');
-  mask = loadImage('/assets/mask.png');
+  img = loadImage('assets/example.png');
+  mask = loadImage('assets/mask.png');
 }
 
 function setup() {

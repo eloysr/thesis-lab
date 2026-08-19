@@ -14,9 +14,10 @@
  * - Shows a loading message until the data arrives, then renders the temperature and coordinates.
  */
 
+//he ido a gps-coordinates.com y he cogido las coordenadas de Arconcillos
 let temp;
-let lat = 50.1109;
-let long = 8.6821;
+let lat = 41.122707;
+let long = -3.732339;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);

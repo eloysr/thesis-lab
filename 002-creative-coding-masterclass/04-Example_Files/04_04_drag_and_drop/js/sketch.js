@@ -25,7 +25,7 @@ let myCanvas;
 // Preload function to load the image before the sketch starts.
 function preload() {
   // Load the image and create a p5.Image object.
-  img = loadImage('/assets/example.png');
+  img = loadImage('assets/example.png');
 }
 
 function setup() {
