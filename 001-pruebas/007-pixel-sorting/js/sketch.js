@@ -134,7 +134,7 @@ function setup() {
   let filaVolver = createDiv().addClass('fila-acciones');
   filaVolver.parent(zonaBotones);
 
-  let botonVolver = createA('https://eloysr.github.io/thesis-lab/index.html', 'Volver');
+  let botonVolver = createA('../../index.html', 'Volver');
   botonVolver.addClass('boton');
   botonVolver.addClass('boton-reset');
   botonVolver.parent(filaVolver);
