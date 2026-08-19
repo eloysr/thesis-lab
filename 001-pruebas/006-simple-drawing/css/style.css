@@ -1,0 +1,36 @@
+:root {
+  --fondo: #141414;
+  --texto: #f0f0f0;
+  --apagado: #777;
+  --linea: #2a2a2a;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--fondo);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+}
+
+.boton {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: 1px solid var(--linea);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.boton:hover {
+  border-color: var(--texto);
+  background: #1a1a1a;
+}
