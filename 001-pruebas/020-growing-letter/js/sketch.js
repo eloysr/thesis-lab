@@ -287,7 +287,7 @@ function updateLetterBoundary() {
           }
           
           if (nonLetterNeighbors >= 1) {
-            if (nonLetterNeighbors >= 5) {
+            if (nonLetterNeighbors >= 3) {
               letterBoundaryPoints.push({ x, y });
             } else {
               internalBoundaryPoints.push({ x, y });
