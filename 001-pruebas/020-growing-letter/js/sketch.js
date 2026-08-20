@@ -422,7 +422,6 @@ function exportPNG() {
     print(exportGraphics, `growing-letter_${dateStr}_${timeStr}`);
     exportGraphics.remove();
   }
-  exportGraphics.remove();
 }
 
 function draw() {
