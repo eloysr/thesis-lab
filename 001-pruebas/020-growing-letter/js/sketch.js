@@ -1,6 +1,6 @@
 // Growing Letter - Interactive Sound/Mouse-Driven Organic Typography Growth
 // eloy segura @ altura x
-// Last updated: 2026-08-20 18:45:00
+// Last updated: 2026-08-20 18:57:23
 
 let canvas;
 let letters = "A";
@@ -30,7 +30,7 @@ let fft;
 let micActive = false;
 let fontSizeTimeout;
 
-const BUILD_TIME = "2026-08-20 18:45:00";
+const BUILD_TIME = "2026-08-20 18:57:23";
 
 class Branch {
   constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0) {
@@ -195,8 +195,28 @@ function updateModeButtons() {
   }
 }
 
-function updateTimestamp() {
-  timestamp.textContent = `v1.0 · eloy segura @ altura x · built ${BUILD_TIME}`;
+async function updateTimestamp() {
+  try {
+    const response = await fetch('js/sketch.js', { method: 'HEAD' });
+    const lastModified = response.headers.get('last-modified');
+    if (lastModified) {
+      const date = new Date(lastModified);
+      const formatted = date.toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit', 
+        hour12: false 
+      });
+      timestamp.textContent = `v1.0 · eloy segura @ altura x · built ${formatted}`;
+    } else {
+      timestamp.textContent = `v1.0 · eloy segura @ altura x · built ${BUILD_TIME}`;
+    }
+  } catch (e) {
+    timestamp.textContent = `v1.0 · eloy segura @ altura x · built ${BUILD_TIME}`;
+  }
 }
 
 function updateLetterBoundary() {
