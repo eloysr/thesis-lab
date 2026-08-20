@@ -1,5 +1,6 @@
 // Growing Letter - Interactive Sound/Mouse-Driven Organic Typography Growth
 // eloy segura @ altura x
+// Last updated: 2026-08-20 16:30:00
 
 let canvas;
 let letters = "A";
@@ -28,6 +29,8 @@ let audioContext;
 let fft;
 let micActive = false;
 let fontSizeTimeout;
+
+const BUILD_TIME = "2026-08-20 16:30:00"; // Change this when you update the code
 
 class Branch {
   constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0) {
@@ -142,7 +145,6 @@ function setup() {
     fontSizeValue.textContent = fontSize;
     if (!isGrowing) redrawCanvas();
     
-    // Debounce: only update boundary after user stops dragging
     clearTimeout(fontSizeTimeout);
     fontSizeTimeout = setTimeout(() => {
       updateLetterBoundary();
@@ -172,7 +174,6 @@ function setup() {
 
   updateModeButtons();
   updateTimestamp();
-  setInterval(updateTimestamp, 1000);
 
   if (width > 100 && height > 100) {
     updateLetterBoundary();
@@ -195,10 +196,7 @@ function updateModeButtons() {
 }
 
 function updateTimestamp() {
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('es-ES');
-  const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  timestamp.textContent = `v1.0 · eloy segura @ altura x · ${dateStr} ${timeStr}`;
+  timestamp.textContent = `v1.0 · eloy segura @ altura x · built ${BUILD_TIME}`;
 }
 
 function updateLetterBoundary() {
@@ -231,7 +229,7 @@ function updateLetterBoundary() {
   let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
   letterBoundaryPoints = [];
 
-  for (let y = 2; y < height - 2; y += 2) { // Sample every 2 pixels for speed
+  for (let y = 2; y < height - 2; y += 2) {
     for (let x = 2; x < width - 2; x += 2) {
       let idx = (y * width + x) * 4 + 3;
       if (pixels[idx] > 128) {
