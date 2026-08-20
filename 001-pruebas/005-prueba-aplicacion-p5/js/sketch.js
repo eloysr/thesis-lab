@@ -30,7 +30,7 @@ function setup() {
   tituloBotonera.addClass('titulo-botonera');
   tituloBotonera.parent(grupoTitulo);
 
-  let textoIntro = createP('Prueba 05. Interfaz de usuario para modificar las características de un texto mostrado a la derecha');
+  let textoIntro = createP('Test 05. User interface to modify text characteristics displayed on the right');
   textoIntro.addClass('texto-intro');
   textoIntro.parent(grupoTitulo);
 
@@ -199,9 +199,9 @@ function setup() {
 
   let transformaciones = [
     { etiqueta: 'Normal', valor: 'none' },
-    { etiqueta: 'Mayúsculas', valor: 'uppercase' },
-    { etiqueta: 'Minúsculas', valor: 'lowercase' },
-    { etiqueta: 'Tipo Frase', valor: 'capitalize' }
+    { etiqueta: 'Uppercase', valor: 'uppercase' },
+    { etiqueta: 'Lowercase', valor: 'lowercase' },
+    { etiqueta: 'Capitalize', valor: 'capitalize' }
   ];
 
   let filaTransformacion = createDiv().addClass('fila-etiqueta');

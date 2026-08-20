@@ -20,7 +20,7 @@ function setup() {
   tituloBotonera.addClass('titulo-botonera');
   tituloBotonera.parent(grupoTitulo);
 
-  let textoIntro = createP('Ordena píxeles de una imagen según su brillo, color o saturación');
+  let textoIntro = createP('Sort pixels of an image based on brightness, color or saturation');
   textoIntro.addClass('texto-intro');
   textoIntro.parent(grupoTitulo);
 
@@ -34,7 +34,7 @@ function setup() {
   inputFile.style('display', 'none');
   inputFile.parent(zonaBotones);
 
-  let botonCargar = createButton('Cargar imagen');
+  let botonCargar = createButton('Load image');
   botonCargar.addClass('boton');
   botonCargar.addClass('boton-archivo');
   botonCargar.parent(zonaBotones);
@@ -51,19 +51,19 @@ function setup() {
   let filaMetodo = createDiv().addClass('fila-etiqueta');
   filaMetodo.parent(zonaBotones);
 
-  let etiquetaMetodo = createP('Ordenar por');
+  let etiquetaMetodo = createP('Sort by');
   etiquetaMetodo.addClass('etiqueta-control');
   etiquetaMetodo.parent(filaMetodo);
 
   let selectorMetodo = createSelect();
   selectorMetodo.addClass('boton');
   selectorMetodo.parent(filaMetodo);
-  selectorMetodo.option('Brillo', 'brightness');
-  selectorMetodo.option('Tonalidad', 'hue');
-  selectorMetodo.option('Saturación', 'saturation');
+  selectorMetodo.option('Brightness', 'brightness');
+  selectorMetodo.option('Hue', 'hue');
+  selectorMetodo.option('Saturation', 'saturation');
   selectorMetodo.selected('brightness');
 
-  let explicacionMetodo = createP('Oscuro → Claro');
+  let explicacionMetodo = createP('Dark → Light');
   explicacionMetodo.addClass('explicacion-metodo');
   explicacionMetodo.parent(zonaBotones);
 
@@ -71,11 +71,11 @@ function setup() {
     sortType = selectorMetodo.value();
 
     if (sortType === 'brightness') {
-      explicacionMetodo.html('Oscuro → Claro');
+      explicacionMetodo.html('Dark → Light');
     } else if (sortType === 'hue') {
-      explicacionMetodo.html('Rojo → Amarillo → Verde → Cian → Azul → Magenta');
+      explicacionMetodo.html('Red → Yellow → Green → Cyan → Blue → Magenta');
     } else if (sortType === 'saturation') {
-      explicacionMetodo.html('Desaturado (gris) → Saturado (color puro)');
+      explicacionMetodo.html('Desaturated (gray) → Saturated (pure color)');
     }
 
     if (enableProcessing) {
@@ -87,28 +87,28 @@ function setup() {
   let filaActivar = createDiv().addClass('fila-acciones');
   filaActivar.parent(zonaBotones);
 
-  let botonActivar = createButton('Activar');
+  let botonActivar = createButton('Enable');
   botonActivar.addClass('boton');
   botonActivar.addClass('boton-reset');
   botonActivar.parent(filaActivar);
 
-  let estadoProcesamiento = createP('Estado: <strong>Inactivo</strong>');
+  let estadoProcesamiento = createP('Status: <strong>Inactive</strong>');
   estadoProcesamiento.addClass('info-procesamiento');
   estadoProcesamiento.parent(zonaBotones);
 
   botonActivar.mousePressed(() => {
     if (!imagenOriginal) {
-      alert('Por favor, carga una imagen primero');
+      alert('Please load an image first');
       return;
     }
     enableProcessing = !enableProcessing;
     if (enableProcessing) {
       botonActivar.addClass('activo');
-      estadoProcesamiento.html('Estado: <strong>Activado</strong>');
+      estadoProcesamiento.html('Status: <strong>Enabled</strong>');
       procesarImagen();
     } else {
       botonActivar.removeClass('activo');
-      estadoProcesamiento.html('Estado: <strong>Desactivado</strong>');
+      estadoProcesamiento.html('Status: <strong>Disabled</strong>');
     }
   });
 
@@ -125,7 +125,7 @@ function setup() {
     botonActivar.removeClass('activo');
     selectorMetodo.selected('brightness');
     sortType = 'brightness';
-    estadoProcesamiento.html('Estado: <strong>Inactivo</strong>');
+    estadoProcesamiento.html('Status: <strong>Inactive</strong>');
   });
 
   let separadorVolver = createDiv().addClass('separador-zona');
@@ -134,7 +134,7 @@ function setup() {
   let filaVolver = createDiv().addClass('fila-acciones');
   filaVolver.parent(zonaBotones);
 
-  let botonVolver = createA('../../index.html', 'Volver');
+  let botonVolver = createA('../../index.html', 'Back');
   botonVolver.addClass('boton');
   botonVolver.addClass('boton-reset');
   botonVolver.parent(filaVolver);

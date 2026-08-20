@@ -3,7 +3,7 @@ let mic;
 let nivel = 0;
 let micActivo = false;
 let boton;
-let texto = "DI ALGO...";
+let texto = "SAY SOMETHING...";
 let reconocimiento;
 
 function setup() {
@@ -14,7 +14,7 @@ function setup() {
 
   mic = new p5.AudioIn();
 
-  boton = createButton("Activar micrófono");
+  boton = createButton("Activate microphone");
   boton.position(20, 20);
   boton.mousePressed(activarMicrofono);
 }

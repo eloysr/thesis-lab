@@ -4,7 +4,7 @@ let mic;
 let nivel = 0;
 let micActivo = false;
 let boton;
-let texto = "Cargando frase...";
+let texto = "Loading phrase...";
 let entradaTexto;
 let botonAplicarTexto;
 const STORAGE_KEY = "textoCambiableConfig";
@@ -186,7 +186,7 @@ function setup() {
   textoEncabezadoPanel.style("text-align", "left");
   textoEncabezadoPanel.style("padding", "0 0.25rem");
 
-  botonFondo = createButton(`Fondo · ${colorFondoHex}`);
+  botonFondo = createButton(`Background · ${colorFondoHex}`);
   botonFondo.parent(uiPanel);
   botonFondo.style("width", "auto");
   botonFondo.style("height", "2.5rem");
@@ -280,7 +280,7 @@ function setup() {
   boton.style("box-shadow", "0 0 0 2px rgba(128, 128, 128, 0.2)");
   boton.mousePressed(activarMicrofono);
 
-  botonReset = createButton("Reset configuración");
+  botonReset = createButton("Reset configuration");
   botonReset.parent(uiPanel);
   botonReset.style("width", "auto");
   botonReset.style("height", "2.5rem");
@@ -418,7 +418,7 @@ function setup() {
 
   aplicarConfigInicial(config);
   botonColor.html(`Color · ${colorSeleccionadoHex}`);
-  botonFondo.html(`Fondo · ${colorFondoHex}`);
+  botonFondo.html(`Background · ${colorFondoHex}`);
   botonTamano.html(`Text size · ${tamañoTexto}`);
   sliderTamano.value(tamañoTexto);
   displayTamano.html(tamañoTexto.toString());
@@ -441,7 +441,7 @@ function aplicarTextoPersonalizado() {
     texto = valor;
     textoPersonalizado = true;
   } else {
-    texto = "Cargando frase...";
+    texto = "Loading phrase...";
     textoPersonalizado = false;
   }
 
@@ -465,7 +465,7 @@ function seleccionarTextoColor(hex, swatch) {
 function seleccionarFondoColor(hex, swatch) {
   colorFondo = hexToRgb(hex);
   colorFondoHex = hex;
-  botonFondo.html(`Fondo · ${hex}`);
+  botonFondo.html(`Background · ${hex}`);
 
   if (swatchSeleccionadoFondo) {
     swatchSeleccionadoFondo.removeClass("selected");
@@ -479,7 +479,7 @@ function seleccionarFondoColor(hex, swatch) {
 function seleccionarTamano(size, item) {
   tamañoTexto = size;
   sizeSeleccionado = item;
-  botonTamano.html(`Tamaño · ${size}`);
+  botonTamano.html(`Size · ${size}`);
 
   if (sizeSeleccionado && sizeSeleccionado !== item) {
     sizeSeleccionado.removeClass("selected");
@@ -586,7 +586,7 @@ function guardarConfiguracion() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(configuracion));
   } catch (error) {
-    console.warn("No se pudo guardar la configuración:", error);
+    console.warn("Could not save configuration:", error);
   }
 }
 
@@ -595,14 +595,14 @@ function cargarConfiguracion() {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
-    console.warn("No se pudo cargar la configuración:", error);
+    console.warn("Could not load configuration:", error);
     return null;
   }
 }
 
 function aplicarConfigAlEstado(config) {
   if (typeof config.texto === "string") {
-    texto = config.texto.length > 0 ? config.texto : "Cargando frase...";
+    texto = config.texto.length > 0 ? config.texto : "Loading phrase...";
     textoPersonalizado = config.texto.length > 0;
   }
 
@@ -649,7 +649,7 @@ function aplicarConfigAlEstado(config) {
 function aplicarConfigInicial(config) {
   if (config.texto !== undefined) {
     entradaTexto.value(config.texto);
-    texto = config.texto.length > 0 ? config.texto : "Cargando frase...";
+    texto = config.texto.length > 0 ? config.texto : "Loading phrase...";
     textoPersonalizado = config.texto.length > 0;
   }
 
@@ -697,7 +697,7 @@ function resetConfiguracion() {
   aplicarConfigAlEstado(DEFAULT_CONFIG);
   entradaTexto.value("");
   botonColor.html(`Color · ${colorSeleccionadoHex}`);
-  botonFondo.html(`Fondo · ${colorFondoHex}`);
+  botonFondo.html(`Background · ${colorFondoHex}`);
   botonTamano.html(`Text size · ${tamañoTexto}`);
   sliderTamano.value(tamañoTexto);
   displayTamano.html(tamañoTexto.toString());

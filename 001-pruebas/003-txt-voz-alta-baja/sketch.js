@@ -25,18 +25,18 @@ function setup() {
 
   mic = new p5.AudioIn();
 
-  botonEscuchar = createButton("Escuchar");
+  botonEscuchar = createButton("Listen");
   botonEscuchar.addClass("back-button");
   botonEscuchar.mousePressed(empezarAEscuchar);
   fijarEnPantalla(botonEscuchar, 20);
 
-  botonParar = createButton("Dejar de escuchar");
+  botonParar = createButton("Stop listening");
   botonParar.addClass("back-button");
   botonParar.mousePressed(pararDeEscuchar);
   fijarEnPantalla(botonParar, 120);
   botonParar.hide();
 
-  botonLimpiar = createButton("Limpiar");
+  botonLimpiar = createButton("Clear");
   botonLimpiar.addClass("back-button");
   // clase adicional para diferenciar visualmente la acción
   botonLimpiar.addClass("limpiar-button");

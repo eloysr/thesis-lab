@@ -3,12 +3,12 @@ function setup() {
   background(20); // pinta el fondo casi negro (a juego con el resto del sitio), una sola vez
   strokeWeight(4); // grosor del trazo en píxeles (por defecto sería 1, muy fino)
 
-  const botonGuardar = createButton('Guardar dibujo'); // crea un <button> HTML
+  const botonGuardar = createButton('Save drawing'); // crea un <button> HTML
   botonGuardar.addClass('boton'); // estilo compartido con el resto del sitio (css/style.css)
   botonGuardar.position(10, 10); // lo coloca a 10px del borde superior izquierdo
   botonGuardar.mousePressed(guardarDibujo); // al hacer clic, ejecuta guardarDibujo()
 
-  const botonBorrar = createButton('Borrar dibujo'); // segundo <button> HTML
+  const botonBorrar = createButton('Clear drawing'); // segundo <button> HTML
   botonBorrar.addClass('boton');
   botonBorrar.position(10, 50); // debajo del botón de guardar
   botonBorrar.mousePressed(borrarDibujo); // al hacer clic, ejecuta borrarDibujo()
