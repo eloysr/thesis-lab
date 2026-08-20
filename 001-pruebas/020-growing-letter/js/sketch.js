@@ -230,8 +230,8 @@ function updateLetterBoundary() {
     let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
     letterBoundaryPoints = [];
 
-    for (let y = 2; y < height - 2; y += 3) {
-      for (let x = 2; x < width - 2; x += 3) {
+    for (let y = 2; y < height - 2; y += 1) {
+      for (let x = 2; x < width - 2; x += 1) {
         let idx = (y * width + x) * 4 + 3;
         if (pixels[idx] > 128) {
           let up = ((y - 1) * width + x) * 4 + 3;
@@ -248,7 +248,7 @@ function updateLetterBoundary() {
   } catch (e) {
     console.warn('Could not extract pixels, using fallback');
     // Fallback: generate points in circle
-    for (let a = 0; a < TWO_PI; a += 0.05) {
+    for (let a = 0; a < TWO_PI; a += TWO_PI/360) {
       let r = 50;
       letterBoundaryPoints.push({
         x: letterCenter.x + cos(a) * r,
