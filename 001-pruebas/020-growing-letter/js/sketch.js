@@ -27,6 +27,7 @@ let audioLevel = 0;
 let audioContext;
 let fft;
 let micActive = false;
+let fontSizeTimeout;
 
 class Branch {
   constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0) {
@@ -139,8 +140,13 @@ function setup() {
   fontSizeSlider.addEventListener('input', (e) => {
     fontSize = parseInt(e.target.value);
     fontSizeValue.textContent = fontSize;
-    updateLetterBoundary();
     if (!isGrowing) redrawCanvas();
+    
+    // Debounce: only update boundary after user stops dragging
+    clearTimeout(fontSizeTimeout);
+    fontSizeTimeout = setTimeout(() => {
+      updateLetterBoundary();
+    }, 300);
   });
 
   startBtn.addEventListener('click', startGrowth);
@@ -201,7 +207,6 @@ function updateLetterBoundary() {
   letterCenter.x = width / 2;
   letterCenter.y = height / 2;
 
-  // Create buffer and draw text
   let pg = createGraphics(width, height);
   pg.fill(255);
   pg.textAlign(CENTER, CENTER);
@@ -223,16 +228,13 @@ function updateLetterBoundary() {
     currentX += charWidth + 20;
   }
 
-  // Extract pixels
   let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
   letterBoundaryPoints = [];
 
-  // Find boundary points: pixels that are part of letter AND have non-letter neighbor
-  for (let y = 2; y < height - 2; y++) {
-    for (let x = 2; x < width - 2; x++) {
+  for (let y = 2; y < height - 2; y += 2) { // Sample every 2 pixels for speed
+    for (let x = 2; x < width - 2; x += 2) {
       let idx = (y * width + x) * 4 + 3;
-      if (pixels[idx] > 128) { // This pixel is letter
-        // Check 4 neighbors
+      if (pixels[idx] > 128) {
         let up = ((y - 1) * width + x) * 4 + 3;
         let down = ((y + 1) * width + x) * 4 + 3;
         let left = (y * width + (x - 1)) * 4 + 3;
@@ -246,7 +248,6 @@ function updateLetterBoundary() {
   }
 
   pg.remove();
-  console.log('✓ Found', letterBoundaryPoints.length, 'boundary points');
 }
 
 async function startGrowth() {
@@ -261,7 +262,6 @@ async function startGrowth() {
   branches = [];
   drawnSegments = [];
 
-  // Sample boundary points
   let sampleRate = max(1, floor(letterBoundaryPoints.length / 150));
   for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
     let point = letterBoundaryPoints[i];
