@@ -418,48 +418,6 @@ function exportPNG() {
   let now = new Date();
   let dateStr = now.toISOString().split('T')[0];
   let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-  let filename = `growing-letter_${dateStr}_${timeStr}.png`;
-  
-  try {
-    exportGraphics.canvas.toBlob(function(blob) {
-      let url = URL.createObjectURL(blob);
-      let link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
-      exportGraphics.remove();
-    });
-  } catch (e) {
-    console.error('Export error:', e);
-    exportGraphics.remove();
-  }
-}
-
-
-  exportGraphics.fill(255);
-  exportGraphics.textAlign(CENTER, CENTER);
-  exportGraphics.drawingContext.font = "bold " + (fontSize * scale) + "px Helvetica";
-
-  let totalWidth = 0;
-  for (let i = 0; i < letters.length; i++) {
-    let charWidth = exportGraphics.textWidth(letters[i]);
-    totalWidth += charWidth + 20 * scale;
-  }
-
-  let startX = (width * scale - totalWidth) / 2;
-  let currentX = startX;
-
-  for (let i = 0; i < letters.length; i++) {
-    let char = letters[i];
-    let charWidth = exportGraphics.textWidth(char);
-    exportGraphics.text(char, currentX + charWidth / 2, height * scale / 2);
-    currentX += charWidth + 20 * scale;
-  }
-
-  let now = new Date();
-  let dateStr = now.toISOString().split('T')[0];
-  let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
   if (exportGraphics) {
     print(exportGraphics, `growing-letter_${dateStr}_${timeStr}`);
     exportGraphics.remove();
