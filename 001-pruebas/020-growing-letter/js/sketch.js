@@ -61,12 +61,8 @@ class Branch {
       this.branchInterval *= 10;
     }
     
-    this.speed = 0.8 + random(0.3, 0.8);
-    
-    // Internal branches move 10x slower
-    if (isInternal) {
-      this.speed *= 0.1;
-    }
+    // Consistent speed: external 1.0, internal 0.1 (10x slower)
+    this.speed = isInternal ? 0.1 : 1.0;
     
     this.waveOscillation = random(0.05, 0.12);
     this.wavePhase = random(TWO_PI);
@@ -321,7 +317,7 @@ async function startGrowth() {
   drawnSegments = [];
 
   // External branches: sample every 2-3 points
-  let externalSampleRate = max(2, floor(letterBoundaryPoints.length / 200));
+  let externalSampleRate = max(2, floor(letterBoundaryPoints.length / 600));
   for (let i = 0; i < letterBoundaryPoints.length; i += externalSampleRate) {
     let point = letterBoundaryPoints[i];
     let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
@@ -330,7 +326,7 @@ async function startGrowth() {
   }
 
   // Internal branches: sample every 2-3 points (10x slower growth)
-  let internalSampleRate = max(2, floor(internalBoundaryPoints.length / 200));
+  let internalSampleRate = max(2, floor(internalBoundaryPoints.length / 600));
   for (let i = 0; i < internalBoundaryPoints.length; i += internalSampleRate) {
     let point = internalBoundaryPoints[i];
     let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
@@ -526,7 +522,10 @@ function draw() {
             currentAudioLevel = audioLevel;
           }
           
-          if (audioLevel > 0.02) {
+          // Amplify sensitivity: multiply by 2.5 to detect quieter sounds
+          currentAudioLevel = min(1.0, audioLevel * 2.5);
+          
+          if (audioLevel > 0.008) {
             let percentage = min(100, (audioLevel * 100).toFixed(0));
             micStatusText.textContent = 'Listening: ' + percentage + '%';
           }
