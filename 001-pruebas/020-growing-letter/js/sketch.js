@@ -9,16 +9,13 @@ let growthSpeed = 0.25;
 let audioInput;
 let soundFile;
 
-// Growth system
 let branches = [];
 let letterBoundaryPoints = [];
-let internalBoundaryPoints = [];
 let letterCenter = { x: 0, y: 0 };
 let fontSize = 160;
 let drawnSegments = [];
 let currentAudioLevel = 0;
 
-// UI Elements
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn;
 let fontSizeSlider, fontSizeValue;
 let modeButtons = {};
@@ -26,20 +23,17 @@ let speedSlider, speedValue;
 let micIndicator, micStatusText;
 let timestamp;
 
-// Audio variables
 let audioLevel = 0;
 let audioContext;
 let fft;
 let micActive = false;
 
 class Branch {
-  constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0, isInternal = false) {
+  constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0) {
     this.x = x;
     this.y = y;
     this.prevX = x;
     this.prevY = y;
-    this.audioLevel = audioLevel;
-    this.isInternal = isInternal;
     
     if (parentAngle !== null) {
       this.angle = parentAngle + random(-0.3, 0.3);
@@ -53,12 +47,7 @@ class Branch {
     
     let baseInterval = random(30, 60);
     this.branchInterval = baseInterval / (1 + audioLevel * 25);
-    
-    if (isInternal) {
-      this.branchInterval *= 10;
-    }
-    
-    this.speed = isInternal ? 0.1 : 1.0;
+    this.speed = 1.0;
     
     this.waveOscillation = random(0.05, 0.12);
     this.wavePhase = random(TWO_PI);
@@ -98,8 +87,7 @@ class Branch {
       x1: this.prevX,
       y1: this.prevY,
       x2: this.x,
-      y2: this.y,
-      opacity: 255
+      y2: this.y
     });
 
     let effectiveInterval = this.branchInterval / (1 + audioLevel * 15);
@@ -107,7 +95,7 @@ class Branch {
     if (this.distanceTraveled - this.lastBranchDistance > effectiveInterval) {
       if (this.children.length < 12 && this.generation < 5) {
         let childAngle = currentAngle + random(-PI / 2, PI / 2);
-        let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel, this.isInternal);
+        let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel);
         this.children.push(newBranch);
         branches.push(newBranch);
         this.lastBranchDistance = this.distanceTraveled;
@@ -140,7 +128,6 @@ function setup() {
   modeButtons.mouse = document.getElementById('modeMouse');
   micIndicator = document.getElementById('micIndicator');
   micStatusText = document.getElementById('micStatusText');
-  const audioFile = document.getElementById('audioFile');
   timestamp = document.getElementById('timestamp');
 
   letterInput.addEventListener('change', () => {
@@ -177,17 +164,6 @@ function setup() {
     updateModeButtons();
   });
 
-  audioFile.addEventListener('change', (e) => {
-    if (e.target.files[0]) {
-      stopGrowth();
-      let file = e.target.files[0];
-      let url = URL.createObjectURL(file);
-      soundFile = createAudio();
-      soundFile.src = url;
-      micStatusText.textContent = 'File loaded';
-    }
-  });
-
   updateModeButtons();
   updateTimestamp();
   setInterval(updateTimestamp, 1000);
@@ -199,10 +175,6 @@ function setup() {
   window.addEventListener('resize', () => {
     const rect = holder.getBoundingClientRect();
     resizeCanvas(rect.width, rect.height);
-    if (width > 100 && height > 100) {
-      updateLetterBoundary();
-      if (!isGrowing) redrawCanvas();
-    }
   });
 }
 
@@ -229,41 +201,15 @@ function updateLetterBoundary() {
   letterCenter.x = width / 2;
   letterCenter.y = height / 2;
 
-  letterBoundaryPoints = [];
-  internalBoundaryPoints = [];
-
-  // Generate points by raymarching from center outward
-  let numRays = 360; // One ray per degree
-  let maxDistance = max(width, height);
-
-  for (let angle = 0; angle < TWO_PI; angle += TWO_PI / numRays) {
-    // Cast ray from center outward
-    for (let distance = 10; distance < maxDistance; distance += 2) {
-      let x = letterCenter.x + cos(angle) * distance;
-      let y = letterCenter.y + sin(angle) * distance;
-
-      // Check if point is inside letter by rendering text and checking
-      if (isPointInText(x, y)) {
-        // Found edge - store it
-        letterBoundaryPoints.push({ x: floor(x), y: floor(y) });
-        break;
-      }
-    }
-  }
-
-  console.log('✓ Letter boundary updated:', letterBoundaryPoints.length, 'points');
-}
-
-function isPointInText(px, py) {
-  // Render letter and check if pixel is covered
-  let tempG = createGraphics(width, height);
-  tempG.fill(255);
-  tempG.textAlign(CENTER, CENTER);
-  tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
+  // Create buffer and draw text
+  let pg = createGraphics(width, height);
+  pg.fill(255);
+  pg.textAlign(CENTER, CENTER);
+  pg.drawingContext.font = "bold " + fontSize + "px Helvetica";
 
   let totalWidth = 0;
   for (let i = 0; i < letters.length; i++) {
-    let charWidth = tempG.textWidth(letters[i]);
+    let charWidth = pg.textWidth(letters[i]);
     totalWidth += charWidth + 20;
   }
 
@@ -272,38 +218,57 @@ function isPointInText(px, py) {
 
   for (let i = 0; i < letters.length; i++) {
     let char = letters[i];
-    let charWidth = tempG.textWidth(char);
-    tempG.text(char, currentX + charWidth / 2, height / 2);
+    let charWidth = pg.textWidth(char);
+    pg.text(char, currentX + charWidth / 2, height / 2);
     currentX += charWidth + 20;
   }
 
-  // Use a simplified check: check if pixel is white
-  let imgData = tempG.drawingContext.getImageData(floor(px), floor(py), 1, 1).data;
-  tempG.remove();
+  // Extract pixels
+  let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
+  letterBoundaryPoints = [];
 
-  return imgData[3] > 50; // Check alpha channel
+  // Find boundary points: pixels that are part of letter AND have non-letter neighbor
+  for (let y = 2; y < height - 2; y++) {
+    for (let x = 2; x < width - 2; x++) {
+      let idx = (y * width + x) * 4 + 3;
+      if (pixels[idx] > 128) { // This pixel is letter
+        // Check 4 neighbors
+        let up = ((y - 1) * width + x) * 4 + 3;
+        let down = ((y + 1) * width + x) * 4 + 3;
+        let left = (y * width + (x - 1)) * 4 + 3;
+        let right = (y * width + (x + 1)) * 4 + 3;
+        
+        if (pixels[up] <= 128 || pixels[down] <= 128 || pixels[left] <= 128 || pixels[right] <= 128) {
+          letterBoundaryPoints.push({ x, y });
+        }
+      }
+    }
+  }
+
+  pg.remove();
+  console.log('✓ Found', letterBoundaryPoints.length, 'boundary points');
 }
 
 async function startGrowth() {
   updateLetterBoundary();
 
   if (letterBoundaryPoints.length === 0) {
-    console.warn('No boundary points found');
     micStatusText.textContent = 'No contour';
     return;
   }
-
-  console.log('Starting growth with', letterBoundaryPoints.length, 'branches');
 
   isGrowing = true;
   branches = [];
   drawnSegments = [];
 
-  let sampleRate = max(1, floor(letterBoundaryPoints.length / 200));
+  // Sample boundary points
+  let sampleRate = max(1, floor(letterBoundaryPoints.length / 150));
   for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
     let point = letterBoundaryPoints[i];
-    let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
-    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, false);
+    let dx = point.x - letterCenter.x;
+    let dy = point.y - letterCenter.y;
+    let radialAngle = atan2(dy, dx);
+    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel);
     branches.push(newBranch);
   }
 
@@ -312,67 +277,52 @@ async function startGrowth() {
   clearBtn.disabled = false;
   letterInput.disabled = true;
   fontSizeSlider.disabled = true;
-  speedSlider.disabled = false;
 
   if (mode === 'sound') {
     try {
       micStatusText.textContent = 'Requesting mic...';
-      
-      if (!audioInput) {
-        audioInput = new p5.AudioIn();
-      }
-      
+      if (!audioInput) audioInput = new p5.AudioIn();
       if (!fft) {
         fft = new p5.FFT(0.8, 256);
         fft.setInput(audioInput);
       }
-      
       audioInput.start();
       micActive = true;
-      
       micIndicator.classList.add('active');
       micStatusText.textContent = 'Listening...';
     } catch (e) {
-      console.error('Microphone error:', e);
-      micStatusText.textContent = 'Mic error';
+      console.error('Mic error:', e);
+      micStatusText.textContent = 'Mic unavailable';
     }
   }
 }
 
 function stopGrowth() {
   isGrowing = false;
-
   if (audioInput && micActive) {
     try {
       audioInput.stop();
       micActive = false;
-    } catch (e) {
-      console.error('Stop error:', e);
-    }
+    } catch (e) {}
   }
-
   micIndicator.classList.remove('active');
   micStatusText.textContent = 'Ready';
-
   startBtn.disabled = false;
   stopBtn.disabled = true;
   clearBtn.disabled = false;
   letterInput.disabled = false;
   fontSizeSlider.disabled = false;
-  exportBtn.disabled = false;
 }
 
 function clearGrowth() {
   stopGrowth();
   branches = [];
   drawnSegments = [];
-  exportBtn.disabled = true;
   redrawCanvas();
 }
 
 function redrawCanvas() {
   background(0);
-  
   stroke(255);
   strokeWeight(0.8);
   for (let seg of drawnSegments) {
@@ -402,12 +352,8 @@ function redrawCanvas() {
 
 function exportPNG() {
   let scale = 2;
-  let exportWidth = width * scale;
-  let exportHeight = height * scale;
-
-  let exportGraphics = createGraphics(exportWidth, exportHeight);
+  let exportGraphics = createGraphics(width * scale, height * scale);
   exportGraphics.background(0);
-
   exportGraphics.stroke(255);
   exportGraphics.strokeWeight(0.8 * scale);
   for (let seg of drawnSegments) {
@@ -424,22 +370,20 @@ function exportPNG() {
     totalWidth += charWidth + 20 * scale;
   }
 
-  let startX = (exportWidth - totalWidth) / 2;
+  let startX = (width * scale - totalWidth) / 2;
   let currentX = startX;
 
   for (let i = 0; i < letters.length; i++) {
     let char = letters[i];
     let charWidth = exportGraphics.textWidth(char);
-    exportGraphics.text(char, currentX + charWidth / 2, exportHeight / 2);
+    exportGraphics.text(char, currentX + charWidth / 2, height * scale / 2);
     currentX += charWidth + 20 * scale;
   }
 
   let now = new Date();
   let dateStr = now.toISOString().split('T')[0];
   let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-  let filename = `growing-letter_${dateStr}_${timeStr}.png`;
-
-  exportGraphics.save(filename);
+  exportGraphics.save(`growing-letter_${dateStr}_${timeStr}.png`);
   exportGraphics.remove();
 }
 
@@ -473,53 +417,33 @@ function draw() {
   }
 
   if (isGrowing) {
-    let attractX = null;
-    let attractY = null;
+    let attractX = null, attractY = null;
 
-    if (mode === 'sound') {
-      if (micActive && audioInput) {
-        try {
-          audioLevel = audioInput.getLevel();
-          currentAudioLevel = audioLevel;
-          
-          if (fft) {
-            let spectrum = fft.analyze();
-            let energy = 0;
-            for (let i = 0; i < spectrum.length; i++) {
-              energy += spectrum[i];
-            }
-            energy = energy / spectrum.length / 255;
-            audioLevel = max(audioLevel, energy);
-            currentAudioLevel = audioLevel;
-          }
-          
-          currentAudioLevel = min(1.0, audioLevel * 2.5);
-          
-          if (audioLevel > 0.008) {
-            let percentage = min(100, (audioLevel * 100).toFixed(0));
-            micStatusText.textContent = 'Listening: ' + percentage + '%';
-          }
-        } catch (e) {
-          console.error('Audio error:', e);
+    if (mode === 'sound' && micActive && audioInput) {
+      try {
+        audioLevel = audioInput.getLevel();
+        if (fft) {
+          let spectrum = fft.analyze();
+          let energy = spectrum.reduce((a, b) => a + b, 0) / spectrum.length / 255;
+          audioLevel = max(audioLevel, energy);
         }
-      }
+        currentAudioLevel = min(1.0, audioLevel * 2.5);
+        if (audioLevel > 0.01) {
+          micStatusText.textContent = 'Listening: ' + (audioLevel * 100).toFixed(0) + '%';
+        }
+      } catch (e) {}
     } else if (mode === 'mouse') {
       attractX = mouseX;
       attractY = mouseY;
       currentAudioLevel = 0;
     }
 
-    for (let i = branches.length - 1; i >= 0; i--) {
-      branches[i].update(attractX, attractY, currentAudioLevel);
+    for (let branch of branches) {
+      branch.update(attractX, attractY, currentAudioLevel);
     }
 
-    branches = branches.filter(b => 
-      !(b.x < -100 && b.y < -100 && b.x > width + 100 && b.y > height + 100)
-    );
-
-    if (branches.length > 3000) {
-      branches = branches.slice(-2000);
-    }
+    branches = branches.filter(b => b.isActive);
+    if (branches.length > 3000) branches = branches.slice(-2000);
   }
 }
 
