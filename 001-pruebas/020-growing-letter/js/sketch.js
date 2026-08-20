@@ -17,6 +17,7 @@ let letterCenter = { x: 0, y: 0 };
 let fontSize = 160;
 let drawnSegments = [];
 let currentAudioLevel = 0;
+let isUpdatingBoundary = false;
 
 // UI Elements
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn;
@@ -51,17 +52,13 @@ class Branch {
     this.distanceTraveled = 0;
     this.lastBranchDistance = 0;
     
-    // Branch interval affected by audio: more audio = more branching (smaller interval)
-    // Increased sensitivity: multiplier changed from 8 to 25 for more dramatic effect
     let baseInterval = random(30, 60);
     this.branchInterval = baseInterval / (1 + audioLevel * 25);
     
-    // Internal branches are 10x slower
     if (isInternal) {
       this.branchInterval *= 10;
     }
     
-    // Consistent speed: external 1.0, internal 0.1 (10x slower)
     this.speed = isInternal ? 0.1 : 1.0;
     
     this.waveOscillation = random(0.05, 0.12);
@@ -106,8 +103,6 @@ class Branch {
       opacity: 255
     });
 
-    // Branching interval affected by audio level
-    // Increased sensitivity: multiplier changed from 4 to 15
     let effectiveInterval = this.branchInterval / (1 + audioLevel * 15);
     
     if (this.distanceTraveled - this.lastBranchDistance > effectiveInterval) {
@@ -198,15 +193,14 @@ function setup() {
   updateTimestamp();
   setInterval(updateTimestamp, 1000);
 
-  // Initialize letter boundary only if canvas has valid size
-  if (width > 0 && height > 0) {
+  if (width > 100 && height > 100) {
     updateLetterBoundary();
   }
 
   window.addEventListener('resize', () => {
     const rect = holder.getBoundingClientRect();
     resizeCanvas(rect.width, rect.height);
-    if (width > 0 && height > 0) {
+    if (width > 100 && height > 100) {
       updateLetterBoundary();
       if (!isGrowing) redrawCanvas();
     }
@@ -231,91 +225,92 @@ function updateTimestamp() {
 }
 
 function updateLetterBoundary() {
-  // Safety check: ensure canvas has valid dimensions
-  if (width <= 0 || height <= 0) return;
-
-  let tempG = createGraphics(width, height);
-  tempG.fill(255);
-  tempG.textAlign(CENTER, CENTER);
-  tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
-
-  let totalWidth = 0;
-  for (let i = 0; i < letters.length; i++) {
-    let charWidth = tempG.textWidth(letters[i]);
-    totalWidth += charWidth + 20;
-  }
-
-  let startX = (width - totalWidth) / 2;
-  let currentX = startX;
-
-  for (let i = 0; i < letters.length; i++) {
-    let char = letters[i];
-    let charWidth = tempG.textWidth(char);
-    tempG.text(char, currentX + charWidth / 2, height / 2);
-    currentX += charWidth + 20;
-  }
-
-  letterCenter.x = width / 2;
-  letterCenter.y = height / 2;
-
-  let pg = tempG.drawingContext.getImageData(0, 0, width, height);
-  let data = pg.data;
-
-  let isLetterPixel = new Array(width * height);
-  for (let i = 0; i < data.length; i += 4) {
-    isLetterPixel[i / 4] = data[i + 3] > 50;
-  }
-
-  letterBoundaryPoints = [];
-  internalBoundaryPoints = [];
+  // Prevent concurrent updates
+  if (isUpdatingBoundary) return;
+  if (width <= 100 || height <= 100) return;
   
-  // Detect all edges (external and internal)
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      let idx = y * width + x;
-      
-      if (isLetterPixel[idx]) {
-        let isEdge = false;
+  isUpdatingBoundary = true;
+
+  try {
+    let tempG = createGraphics(width, height);
+    tempG.fill(255);
+    tempG.textAlign(CENTER, CENTER);
+    tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
+
+    let totalWidth = 0;
+    for (let i = 0; i < letters.length; i++) {
+      let charWidth = tempG.textWidth(letters[i]);
+      totalWidth += charWidth + 20;
+    }
+
+    let startX = (width - totalWidth) / 2;
+    let currentX = startX;
+
+    for (let i = 0; i < letters.length; i++) {
+      let char = letters[i];
+      let charWidth = tempG.textWidth(char);
+      tempG.text(char, currentX + charWidth / 2, height / 2);
+      currentX += charWidth + 20;
+    }
+
+    letterCenter.x = width / 2;
+    letterCenter.y = height / 2;
+
+    let pg = tempG.drawingContext.getImageData(0, 0, width, height);
+    let data = pg.data;
+
+    let isLetterPixel = new Array(width * height);
+    for (let i = 0; i < data.length; i += 4) {
+      isLetterPixel[i / 4] = data[i + 3] > 50;
+    }
+
+    letterBoundaryPoints = [];
+    internalBoundaryPoints = [];
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        let idx = y * width + x;
         
-        // Check 4-connectivity (up, down, left, right only)
-        if (!isLetterPixel[idx - width] ||
-            !isLetterPixel[idx + width] ||
-            !isLetterPixel[idx - 1] ||
-            !isLetterPixel[idx + 1]) {
-          isEdge = true;
-        }
-        
-        // If edge, count non-letter neighbors and determine if internal
-        if (isEdge) {
-          let nonLetterNeighbors = 0;
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              if (dx === 0 && dy === 0) continue;
-              let nIdx = (y + dy) * width + (x + dx);
-              if (nIdx >= 0 && nIdx < isLetterPixel.length && !isLetterPixel[nIdx]) {
-                nonLetterNeighbors++;
-              }
-            }
+        if (isLetterPixel[idx]) {
+          let isEdge = false;
+          
+          if (!isLetterPixel[idx - width] ||
+              !isLetterPixel[idx + width] ||
+              !isLetterPixel[idx - 1] ||
+              !isLetterPixel[idx + 1]) {
+            isEdge = true;
           }
           
-          if (nonLetterNeighbors >= 1) {
-            // Classify as internal or external based on neighbor count
-            // High non-letter neighbors = external edge
-            // Low non-letter neighbors = internal edge (surrounded by letter)
-            if (nonLetterNeighbors >= 5) {
-              // External edge
-              letterBoundaryPoints.push({ x, y });
-            } else {
-              // Internal edge (hole/gap in letter)
-              internalBoundaryPoints.push({ x, y });
+          if (isEdge) {
+            let nonLetterNeighbors = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                let nIdx = (y + dy) * width + (x + dx);
+                if (nIdx >= 0 && nIdx < isLetterPixel.length && !isLetterPixel[nIdx]) {
+                  nonLetterNeighbors++;
+                }
+              }
+            }
+            
+            if (nonLetterNeighbors >= 1) {
+              if (nonLetterNeighbors >= 5) {
+                letterBoundaryPoints.push({ x, y });
+              } else {
+                internalBoundaryPoints.push({ x, y });
+              }
             }
           }
         }
       }
     }
-  }
 
-  tempG.remove();
+    tempG.remove();
+  } catch (e) {
+    console.error('Error updating letter boundary:', e);
+  } finally {
+    isUpdatingBoundary = false;
+  }
 }
 
 async function startGrowth() {
@@ -327,7 +322,6 @@ async function startGrowth() {
   branches = [];
   drawnSegments = [];
 
-  // External branches: sample every 2-3 points
   let externalSampleRate = max(2, floor(letterBoundaryPoints.length / 600));
   for (let i = 0; i < letterBoundaryPoints.length; i += externalSampleRate) {
     let point = letterBoundaryPoints[i];
@@ -336,7 +330,6 @@ async function startGrowth() {
     branches.push(newBranch);
   }
 
-  // Internal branches: sample every 2-3 points (10x slower growth)
   let internalSampleRate = max(2, floor(internalBoundaryPoints.length / 600));
   for (let i = 0; i < internalBoundaryPoints.length; i += internalSampleRate) {
     let point = internalBoundaryPoints[i];
@@ -370,10 +363,9 @@ async function startGrowth() {
       
       micIndicator.classList.add('active');
       micStatusText.textContent = 'Listening...';
-      console.log('✓ Microphone started');
     } catch (e) {
       console.error('✗ Microphone error:', e);
-      micStatusText.textContent = 'Mic error: ' + e.message;
+      micStatusText.textContent = 'Mic error';
     }
   }
 }
@@ -385,9 +377,8 @@ function stopGrowth() {
     try {
       audioInput.stop();
       micActive = false;
-      console.log('✓ Microphone stopped');
     } catch (e) {
-      console.error('✗ Stop error:', e);
+      console.error('Stop error:', e);
     }
   }
 
@@ -533,7 +524,6 @@ function draw() {
             currentAudioLevel = audioLevel;
           }
           
-          // Amplify sensitivity: multiply by 2.5 to detect quieter sounds
           currentAudioLevel = min(1.0, audioLevel * 2.5);
           
           if (audioLevel > 0.008) {
