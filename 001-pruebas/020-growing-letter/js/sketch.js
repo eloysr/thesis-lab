@@ -225,7 +225,6 @@ function updateTimestamp() {
 }
 
 function updateLetterBoundary() {
-  // Prevent concurrent updates
   if (isUpdatingBoundary) return;
   if (width <= 100 || height <= 100) return;
   
@@ -256,49 +255,42 @@ function updateLetterBoundary() {
     letterCenter.x = width / 2;
     letterCenter.y = height / 2;
 
-    let pg = tempG.drawingContext.getImageData(0, 0, width, height);
-    let data = pg.data;
-
-    let isLetterPixel = new Array(width * height);
-    for (let i = 0; i < data.length; i += 4) {
-      isLetterPixel[i / 4] = data[i + 3] > 50;
-    }
+    // Use canvas directly instead of creating large array
+    let ctx = tempG.drawingContext;
+    let imgData = ctx.getImageData(0, 0, width, height);
+    let data = imgData.data;
 
     letterBoundaryPoints = [];
     internalBoundaryPoints = [];
     
+    // Scan for edges directly without intermediate array
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
-        let idx = y * width + x;
+        let idx = (y * width + x) * 4 + 3; // Alpha channel
+        let currAlpha = data[idx] > 50;
         
-        if (isLetterPixel[idx]) {
-          let isEdge = false;
-          
-          if (!isLetterPixel[idx - width] ||
-              !isLetterPixel[idx + width] ||
-              !isLetterPixel[idx - 1] ||
-              !isLetterPixel[idx + 1]) {
-            isEdge = true;
+        // Check if edge
+        let upAlpha = data[((y - 1) * width + x) * 4 + 3] > 50;
+        let downAlpha = data[((y + 1) * width + x) * 4 + 3] > 50;
+        let leftAlpha = data[(y * width + (x - 1)) * 4 + 3] > 50;
+        let rightAlpha = data[(y * width + (x + 1)) * 4 + 3] > 50;
+        
+        if (currAlpha && (!upAlpha || !downAlpha || !leftAlpha || !rightAlpha)) {
+          // Count non-letter neighbors
+          let nonLetterNeighbors = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              let nidx = ((y + dy) * width + (x + dx)) * 4 + 3;
+              if (data[nidx] <= 50) nonLetterNeighbors++;
+            }
           }
           
-          if (isEdge) {
-            let nonLetterNeighbors = 0;
-            for (let dy = -1; dy <= 1; dy++) {
-              for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                let nIdx = (y + dy) * width + (x + dx);
-                if (nIdx >= 0 && nIdx < isLetterPixel.length && !isLetterPixel[nIdx]) {
-                  nonLetterNeighbors++;
-                }
-              }
-            }
-            
-            if (nonLetterNeighbors >= 1) {
-              if (nonLetterNeighbors >= 5) {
-                letterBoundaryPoints.push({ x, y });
-              } else {
-                internalBoundaryPoints.push({ x, y });
-              }
+          if (nonLetterNeighbors >= 1) {
+            if (nonLetterNeighbors >= 5) {
+              letterBoundaryPoints.push({ x, y });
+            } else {
+              internalBoundaryPoints.push({ x, y });
             }
           }
         }
@@ -307,7 +299,7 @@ function updateLetterBoundary() {
 
     tempG.remove();
   } catch (e) {
-    console.error('Error updating letter boundary:', e);
+    console.error('Error in updateLetterBoundary:', e);
   } finally {
     isUpdatingBoundary = false;
   }
@@ -364,7 +356,7 @@ async function startGrowth() {
       micIndicator.classList.add('active');
       micStatusText.textContent = 'Listening...';
     } catch (e) {
-      console.error('✗ Microphone error:', e);
+      console.error('Microphone error:', e);
       micStatusText.textContent = 'Mic error';
     }
   }
