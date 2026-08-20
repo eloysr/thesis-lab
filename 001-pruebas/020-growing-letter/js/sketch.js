@@ -298,6 +298,7 @@ function updateLetterBoundary() {
     }
 
     tempG.remove();
+    console.log('✓ Letter boundary updated:', letterBoundaryPoints.length, 'external +', internalBoundaryPoints.length, 'internal');
   } catch (e) {
     console.error('Error in updateLetterBoundary:', e);
   } finally {
@@ -306,10 +307,17 @@ function updateLetterBoundary() {
 }
 
 async function startGrowth() {
+  // Ensure boundary is up-to-date
+  updateLetterBoundary();
+  
   if (letterBoundaryPoints.length === 0 && internalBoundaryPoints.length === 0) {
+    console.warn('No boundary points found. Letter may be too small or invisible.');
+    micStatusText.textContent = 'No contour detected';
     return;
   }
 
+  console.log('Starting growth with', letterBoundaryPoints.length + internalBoundaryPoints.length, 'branches');
+  
   isGrowing = true;
   branches = [];
   drawnSegments = [];
