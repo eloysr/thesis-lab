@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Logo" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 420.4 494.2">
+  <!-- Generator: Adobe Illustrator 30.5.1, SVG Export Plug-In . SVG Version: 2.1.4 Build 3)  -->
+  <defs>
+    <style>
+      .st0 {
+        display: none;
+        fill: none;
+        stroke: #181715;
+        stroke-miterlimit: 10;
+        stroke-width: 52px;
+      }
+
+      .st1 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <polyline class="st0" points="328.7 5.3 363.6 169.9 199 204.8"/>
+  <path class="st0" d="M394.4,284c0,101.7-82.5,184.2-184.2,184.2S26,385.7,26,284,108.5,99.8,210.2,99.8"/>
+  <path class="st0" d="M210.2,99.8c48.4,0,92.5,18.7,125.3,49.2"/>
+  <path class="st1" d="M368.4,284c0,87.2-71,158.2-158.2,158.2S52,371.2,52,284,123,125.8,210.2,125.8s66.2,10.7,93.1,30.3l-109.7,23.3,10.8,50.9,190-40.3L354.1,0l-50.8,10.7,20.4,96.4c-33.6-21.7-72.8-33.3-113.5-33.3C94.3,73.8,0,168.1,0,284s94.3,210.2,210.2,210.2,210.2-94.3,210.2-210.2h-52Z"/>
+</svg>

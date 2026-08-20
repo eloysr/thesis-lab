@@ -1,0 +1,148 @@
+<!--
+    This HTML file loads styles, libraries, and the project files.
+    The canvas itself is created dynamically in js/sketch.js.
+  -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <!-- Basic document metadata and responsive behavior. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Browser tab title. -->
+  <title>Interface</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- External libraries -->
+  <script src="libraries/p5.js"></script>
+
+  <!-- Project files -->
+  <script src="js/sketch.js"></script>
+  <script src="js/interface.js"></script>
+
+</head>
+
+<body>
+
+  <div id="canvas-wrapper">
+    <!-- The p5.js canvas is injected here at runtime. -->
+  </div>
+
+
+  <div id="interface">
+
+    <!--
+    The interface is structured in collapsible sections, each containing controls 
+    related to a specific aspect of the project (canvas, text, typewriter effect). 
+    Each control has a label, an input element (slider, button, etc.), and often a value display.
+    The controls are linked to the sketch via event listeners in js/interface.js, 
+    which update global variables that the sketch uses to adjust its behavior 
+    and appearance in real time.
+    -->
+
+    <!-- ── CANVAS ──────────────────────────────── -->
+    <div class="section">
+      <div class="section-header" data-target="s-canvas">
+        <span>Canvas</span><span class="arrow open"></span>
+      </div>
+      <div class="section-body" id="s-canvas">
+        <div class="ctrl-row" style="margin-top: 4px;">
+          <span class="lbl">Format</span>
+          <div class="custom-select" id="canvasFormatSel" data-value="9x16">
+            <div class="cs-selected">
+              <span class="cs-label">9 × 16</span>
+              <span class="cs-arrow"></span>
+            </div>
+            <div class="cs-options">
+              <div class="cs-option selected" data-value="9x16">9 × 16</div>
+              <div class="cs-option" data-value="1x1">1 × 1</div>
+              <div class="cs-option" data-value="4x5">4 × 5</div>
+            </div>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <span class="lbl"></span>
+          <button class="btn-outline" id="swapBtn">Swap format</button>
+        </div>
+        <div class="ctrl-row slider-row">
+          <span class="lbl">Margin</span>
+          <input type="range" id="txtMarginSlider" min="0" max="20" step="0.5">
+          <span class="val" id="txtMarginVal">8.5</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TEXT ────────────────────────────────── -->
+    <div class="section">
+      <div class="section-header" data-target="s-text">
+        <span>Text</span><span class="arrow open"></span>
+      </div>
+      <div class="section-body" id="s-text">
+        <textarea id="txtInput" rows="3" spellcheck="false"></textarea>
+        <div class="ctrl-row slider-row">
+          <span class="lbl">Text size</span>
+          <input type="range" id="txtSizeSlider" min="10" max="50" step="1">
+          <span class="val" id="txtSizeVal">20</span>
+        </div>
+        <div class="ctrl-row slider-row">
+          <span class="lbl">Tracking</span>
+          <input type="range" id="letterSpaceSlider" min="0" max="20" step="0.1">
+          <span class="val" id="letterSpaceVal">0.0</span>
+        </div>
+        <div class="ctrl-row slider-row">
+          <span class="lbl">Line space</span>
+          <input type="range" id="lineSpaceSlider" min="0" max="10" step="0.1">
+          <span class="val" id="lineSpaceVal">1.5</span>
+        </div>
+        <div class="ctrl-row">
+          <span class="lbl">Text color</span>
+          <div class="color-radios">
+            <label class="cr-lbl" title="Black / White">
+              <input type="radio" name="colorMode" value="bw">
+              <span class="cr-dot cr-dot-bw"></span>
+            </label>
+            <label class="cr-lbl" title="Random colors">
+              <input type="radio" name="colorMode" value="random" checked>
+              <span class="cr-dot cr-dot-random"></span>
+            </label>
+            <button class="btn-shuffle" id="shuffleColorsBtn" title="New random colors">shuffle</button>
+          </div>
+        </div>
+        <div class="ctrl-row slider-row">
+          <span class="lbl">Speed</span>
+          <input type="range" id="speedLettersSlider" min="10" max="300" step="5">
+          <span class="val" id="speedLettersVal">60</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TYPEWRITER ────────────────────────────── -->
+    <div class="section">
+      <div class="section-header" data-target="s-typewriter">
+        <span>Typewriter</span><span class="arrow open"></span>
+      </div>
+      <div class="section-body" id="s-typewriter">
+        <div class="ctrl-row toggle-row">
+          <span id="toggleStatus">Active</span>
+          <label class="toggle-lbl">
+            <input type="checkbox" id="typewriterToggle" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="ctrl-row slider-row" id="speedTypingRow">
+          <span class="lbl">Speed</span>
+          <input type="range" id="speedTypingSlider" min="1" max="30" step="1">
+          <span class="val" id="speedTypingVal">60</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

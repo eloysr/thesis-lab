@@ -1,0 +1,552 @@
+/*
+ * © 2026 Schultzschultz. Created for 'Schultzschultz Creative Coding Masterclass'.
+ * For educational use only. All rights reserved.
+ * 
+ * ---------
+ * Interface
+ * ---------
+ * 
+ * This file is the CSS stylesheet for the control panel interface. 
+ * It defines the visual design and layout of all UI elements, including:
+ * - The overall color scheme, typography, and spacing
+ * - The styling of the sections, headers, and content areas
+ * - The appearance of sliders, dropdowns, buttons, and the toggle switch
+ */
+
+
+ /* ––––– GLOBAL VARIABLES –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+:root {
+  /* ––– Colors ––– */
+  --clr-bg:          hsl(0, 0%, 0%);   /* Page background                       */
+  --clr-box:         hsl(0, 0%, 8%);   /* Panel section background              */
+  --clr-border:      hsl(0, 0%, 30%);  /* Borders and outlines                  */
+  --clr-text:        hsl(0, 0%, 100%); /* Primary text and active controls      */
+  --clr-text-dim:    hsl(0, 0%, 50%);  /* Primary text and active controls      */
+  --clr-slid-track:  hsl(0, 0%, 50%);  /* Slider track and toggle background    */
+  --clr-slid–thumb:  hsl(0, 0%, 100%); /* Slider thumb (the draggable dot)      */
+  --clr-toggle-track:hsl(0, 0%, 30%);  /* Toggle switch track (the background)  */
+  --clr-toggle-thumb:hsl(0, 0%, 100%); /* Toggle switch thumb (the sliding dot) */
+
+  /* ––– Border radius ––– */
+  --radius-box:      15px;   /* Rounded corners on each panel section */
+  --radius-pill:     999px;  /* Fully rounded buttons and dropdowns   */
+  --radius-options:  15px;   /* Dropdown list corners                 */
+  --radius-input:    15px;   /* Textarea corners                      */
+
+  /* ––– Layout ––– */
+  --if-width:     300px;  /* Fixed width of the control panel      */
+  --if-gap:       5px;    /* Gap between panel sections            */
+  --if-margin:    15px;   /* Space between the panel and the edge  */
+
+  /* ––– Typography ––– */
+  --font-size:        15px;    /* Base font size used throughout the panel */
+  --letter-spacing:   0.05em;  /* Default letter spacing                   */
+  --letter-spacing-b: 0.075em; /* Slightly wider spacing for bold headings */
+}
+
+
+/* ––––– FONTS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+@font-face {
+  font-family: 'Barlow';
+  src: url('../assets/Barlow-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Barlow';
+  src: url('../assets/Barlow-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+
+/* ––––– RESET –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--clr-bg);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  overflow: hidden; /* Prevent page-level scrollbars */
+}
+
+
+/* ––––– CANVAS AREA –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* Centers the p5.js canvas inside the available area */
+#canvas-wrapper {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* The p5.js canvas element itself */
+canvas {
+  display: block;
+  outline: 1px solid var(--clr-border);
+}
+
+
+/* ––––– INTERFACE –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+#interface {
+  width: var(--if-width);
+  min-width: var(--if-width);
+  flex-shrink: 0;
+  margin: var(--if-margin) var(--if-margin) var(--if-margin) 0;
+  max-height: calc(100vh - 2 * var(--if-margin));
+  overflow-y: auto; /* Allow the panel to scroll if content is tall */
+  background: transparent;
+  font-family: 'Barlow', 'Arial Black', Arial, sans-serif;
+  font-size: var(--font-size);
+  font-weight: 700; /* Bold by default; overridden to 400 inside section bodies */
+  color: var(--clr-text);
+  letter-spacing: var(--letter-spacing);
+  scrollbar-width: thin;
+  scrollbar-color: var(--clr-border) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: var(--if-gap);
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari) */
+#interface::-webkit-scrollbar       { width: 3px; }
+#interface::-webkit-scrollbar-track { background: transparent; }
+#interface::-webkit-scrollbar-thumb { background: var(--clr-border); }
+
+
+/* ––––– SECTIONS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* The outer card for each section */
+.section {
+  background: var(--clr-box);
+  border-radius: var(--radius-box);
+  overflow: visible;
+}
+
+/* Clickable header bar that toggles the section open/closed */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-b);
+  color: var(--clr-text);
+  transition: background 0.1s;
+  border-radius: var(--radius-box);
+}
+
+.section-header:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* CSS-only chevron arrow — rotates to show open/closed state */
+.arrow {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--clr-text);
+  border-bottom: 1.5px solid var(--clr-text);
+  transform: rotate(45deg);   /* Points down when closed */
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 3px;
+}
+
+.arrow.open {
+  transform: rotate(-135deg); /* Points up when open */
+  margin-bottom: -3px;
+}
+
+/* Content area inside each section (hidden when collapsed) */
+.section-body {
+  padding: 6px 16px 16px;
+  font-weight: 400;           /* Override the bold panel default with regular weight */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;                  /* Uniform vertical spacing between all rows */
+}
+
+.section-body.hidden {
+  display: none;
+}
+
+/* Reset font weight for elements inside the section body that inherit bold */
+.section-body .btn-outline,
+.section-body textarea {
+  font-weight: 400;
+}
+
+
+/* ––––– CONTROL ROWS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* Horizontal row container — fixed height keeps all rows the same size */
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 25px;
+}
+
+/* Left-side label (e.g. "Text size", "Margin") */
+.lbl {
+  min-width: 82px;
+  flex-shrink: 0;
+  font-size: var(--font-size);
+  color: var(--clr-text);
+}
+
+/* Right-side numeric readout next to a slider */
+.val {
+  min-width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+  font-size: var(--font-size);
+  color: var(--clr-text);
+}
+
+/* A grayed-out, non-interactive row (used for the typing speed row when typewriter is off) */
+.ctrl-row.disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+
+/* ––––– SLIDERS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* Slider stretches to fill the remaining row space */
+.slider-row input[type="range"] {
+  flex: 1;
+}
+
+/* Remove browser default appearance */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+/* The horizontal track line — WebKit (Chrome, Safari) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--clr-slid-track);
+}
+
+/* The draggable dot — WebKit */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--clr-slid–thumb);
+  margin-top: -4.5px; /* Center the thumb vertically on the track */
+  cursor: pointer;
+}
+
+/* The horizontal track line — Firefox */
+input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: var(--clr-slid-track);
+}
+
+/* The draggable dot — Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--clr-slid–thumb);
+  border: none;
+  cursor: pointer;
+}
+
+
+/* ––––– CUSTOM SELECT (Dropdown) –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* The dropdown and the Swap button both grow to fill the row */
+.ctrl-row .custom-select { flex: 1; }
+.ctrl-row .btn-outline   { flex: 1; }
+
+/* Wrapper — needed for absolute positioning of the option list */
+.custom-select {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  margin-top: 0px;
+}
+
+/* The visible "button" that shows the selected value and opens the list */
+.cs-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 14px;
+  background: var(--clr-box);
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-size: var(--font-size);
+  font-weight: 400;
+}
+
+/* Small chevron arrow inside the dropdown button */
+.cs-arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--clr-text);
+  border-bottom: 1.5px solid var(--clr-text);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 3px;
+}
+
+.cs-arrow.open {
+  transform: rotate(-135deg);
+  margin-bottom: -3px;
+}
+
+/* The dropdown list — hidden by default, shown with the .open class */
+.cs-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: var(--clr-box);
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-options);
+  z-index: 200;
+  overflow: hidden;
+  font-weight: 400;
+}
+
+.cs-options.open { display: block; }
+
+/* A single item in the dropdown list */
+.cs-option {
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: var(--font-size);
+}
+
+/* Divider line between options */
+.cs-option + .cs-option {
+  border-top: 1px solid var(--clr-border);
+}
+
+/* Highlight on hover or when the option is the active selection */
+.cs-option:hover,
+.cs-option.selected {
+  background: var(--clr-text);
+  color: var(--clr-box);
+}
+
+
+/* ––––– BUTTONS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.btn-outline {
+  width: 100%;
+  background: transparent;
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--font-size);
+  letter-spacing: var(--letter-spacing);
+    padding: 3px 15px 5px 15px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-outline:hover {
+  background: var(--clr-text);
+  color: var(--clr-box);
+  border-color: var(--clr-text);
+}
+
+
+/* ––––– TEXTAREA –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+textarea {
+  width: 100%;
+  background: var(--clr-box);
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-input);
+  font-family: inherit;
+  font-size: var(--font-size);
+  letter-spacing: var(--letter-spacing);
+  line-height: 1.5;
+  padding: 8px 10px;
+  resize: none;
+  outline: none;
+  overflow-y: auto;
+}
+
+textarea:focus {
+  border-color: var(--clr-text);
+}
+
+
+/* ––––– COLOR RADIO + SHUFFLE BUTTON –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* Row container for the radio dots and the Shuffle button */
+.color-radios {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Wrapper around each radio input + dot */
+.cr-lbl {
+  cursor: pointer;
+  display: block;
+}
+
+/* Hide the native radio input — we use the dot as the visual control */
+.cr-lbl input[type="radio"] {
+  display: none;
+}
+
+/* The circular color swatch */
+.cr-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--clr-border);
+  transition: box-shadow 0.1s;
+  flex-shrink: 0;
+}
+
+/* B/W mode: half white, half black */
+.cr-dot-bw {
+  background: linear-gradient(135deg, #fff 50%, #000 50%);
+}
+
+/* Random color mode: full rainbow wheel */
+.cr-dot-random {
+  background: conic-gradient(red, orange, yellow, green, blue, violet, red);
+}
+
+/* Show a white ring around the selected radio dot */
+.cr-lbl input:checked + .cr-dot {
+  box-shadow: 0 0 0 2px var(--clr-text);
+}
+
+/* Shuffle button — hidden when B/W mode is active, shown in random mode via JS */
+.btn-shuffle {
+  visibility: hidden; /* Keeps space in the layout even when invisible */
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--clr-border);
+  background: transparent;
+  color: var(--clr-text);
+  font-family: inherit;
+  font-size: var(--font-size);
+  font-weight: 400;
+  letter-spacing: var(--letter-spacing);
+  padding: 3px 15px 5px 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-shuffle.visible {
+  visibility: visible;
+}
+
+.btn-shuffle:hover {
+  background: var(--clr-text);
+  color: var(--clr-box);
+  border-color: var(--clr-text);
+}
+
+
+/* ––––– TOGGLE SWITCH (Typewriter on/off) –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+/* Left-align the toggle row so it matches the other rows */
+.toggle-row {
+  justify-content: flex-start;
+}
+
+/* Status label ("Active" / "Inactive") — fixed width matches the .lbl column */
+#toggleStatus {
+  min-width: 82px;
+  flex-shrink: 0;
+  color: var(--clr-text);
+}
+
+/* Wrapper that makes the entire toggle area clickable */
+.toggle-lbl {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Hide the native checkbox */
+.toggle-lbl input[type="checkbox"] {
+  display: none;
+}
+
+/* The pill-shaped track behind the thumb */
+.toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  background: var(--clr-toggle-track);
+  border-radius: 10px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+/* The circular thumb that slides left/right */
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--clr-toggle-thumb);
+  border-radius: 50%;
+  transition: left 0.2s, background 0.2s;
+}
+
+/* Checked state: bright track */
+.toggle-lbl input:checked + .toggle-track {
+  background: var(--clr-text);
+}
+
+/* Checked state: thumb slides to the right and becomes dark */
+.toggle-lbl input:checked + .toggle-track .toggle-thumb {
+  left: 19px;
+  background: var(--clr-box);
+}

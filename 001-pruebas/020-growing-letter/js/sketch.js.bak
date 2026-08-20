@@ -5,18 +5,16 @@ let canvas;
 let letters = "A";
 let mode = "sound";
 let isGrowing = false;
-let growthSpeed = 0.25;
+let growthSpeed = 1.0;
 let audioInput;
 let soundFile;
 
 // Growth system
 let branches = [];
 let letterBoundaryPoints = [];
-let internalBoundaryPoints = [];
 let letterCenter = { x: 0, y: 0 };
 let fontSize = 160;
 let drawnSegments = [];
-let currentAudioLevel = 0;
 
 // UI Elements
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn;
@@ -33,49 +31,32 @@ let fft;
 let micActive = false;
 
 class Branch {
-  constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0, isInternal = false) {
+  constructor(x, y, angle, parentAngle = null, generation = 0) {
     this.x = x;
     this.y = y;
     this.prevX = x;
     this.prevY = y;
-    this.audioLevel = audioLevel;
-    this.isInternal = isInternal;
     
+    // Always use radial direction (with slight variation)
     if (parentAngle !== null) {
-      this.angle = parentAngle + random(-0.3, 0.3);
+      this.angle = parentAngle + random(-0.3, 0.3); // Small variation
     } else {
-      this.angle = angle;
+      this.angle = angle; // Radial direction from center
     }
     
     this.baseAngle = this.angle;
     this.distanceTraveled = 0;
     this.lastBranchDistance = 0;
-    
-    // Branch interval affected by audio: more audio = more branching (smaller interval)
-    // Increased sensitivity: multiplier changed from 8 to 25 for more dramatic effect
-    let baseInterval = random(30, 60);
-    this.branchInterval = baseInterval / (1 + audioLevel * 25);
-    
-    // Internal branches are 10x slower
-    if (isInternal) {
-      this.branchInterval *= 10;
-    }
-    
+    this.branchInterval = random(30, 60);
     this.speed = 0.8 + random(0.3, 0.8);
-    
-    // Internal branches move 10x slower
-    if (isInternal) {
-      this.speed *= 0.1;
-    }
-    
-    this.waveOscillation = random(0.05, 0.12);
+    this.waveOscillation = random(0.05, 0.12); // Less wave for more radial direction
     this.wavePhase = random(TWO_PI);
     this.generation = generation;
     this.isActive = true;
     this.children = [];
   }
 
-  update(attractX = null, attractY = null, audioLevel = 0) {
+  update(attractX = null, attractY = null) {
     if (!this.isActive) return;
 
     this.prevX = this.x;
@@ -92,7 +73,7 @@ class Branch {
       
       if (distance > 10) {
         let targetAngle = atan2(dy, dx);
-        currentAngle = lerp(currentAngle, targetAngle, 0.03);
+        currentAngle = lerp(currentAngle, targetAngle, 0.03); // Less influence to maintain radial
         this.baseAngle = lerp(this.baseAngle, targetAngle, 0.01);
       }
     }
@@ -110,14 +91,10 @@ class Branch {
       opacity: 255
     });
 
-    // Branching interval affected by audio level
-    // Increased sensitivity: multiplier changed from 4 to 15
-    let effectiveInterval = this.branchInterval / (1 + audioLevel * 15);
-    
-    if (this.distanceTraveled - this.lastBranchDistance > effectiveInterval) {
+    if (this.distanceTraveled - this.lastBranchDistance > this.branchInterval) {
       if (this.children.length < 12 && this.generation < 5) {
         let childAngle = currentAngle + random(-PI / 2, PI / 2);
-        let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel, this.isInternal);
+        let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1);
         this.children.push(newBranch);
         branches.push(newBranch);
         this.lastBranchDistance = this.distanceTraveled;
@@ -172,9 +149,8 @@ function setup() {
   exportBtn.addEventListener('click', exportPNG);
 
   speedSlider.addEventListener('input', (e) => {
-    let sliderValue = parseFloat(e.target.value);
-    growthSpeed = sliderValue * sliderValue;
-    speedValue.textContent = sliderValue.toFixed(2);
+    growthSpeed = parseFloat(e.target.value);
+    speedValue.textContent = growthSpeed.toFixed(1) + 'x';
   });
 
   modeButtons.sound.addEventListener('click', () => {
@@ -227,6 +203,7 @@ function updateTimestamp() {
 }
 
 function updateLetterBoundary() {
+  // Render original letter
   let tempG = createGraphics(width, height);
   tempG.fill(255);
   tempG.textAlign(CENTER, CENTER);
@@ -248,38 +225,41 @@ function updateLetterBoundary() {
     currentX += charWidth + 20;
   }
 
+  // Calculate letter center
   letterCenter.x = width / 2;
   letterCenter.y = height / 2;
 
   let pg = tempG.drawingContext.getImageData(0, 0, width, height);
   let data = pg.data;
 
+  // Create letter pixel map
   let isLetterPixel = new Array(width * height);
   for (let i = 0; i < data.length; i += 4) {
     isLetterPixel[i / 4] = data[i + 3] > 50;
   }
 
+  // Detect EXTERNAL edges only using erosion concept:
+  // A pixel is an external edge if it's a letter pixel AND has at least one non-letter neighbor
+  // But we want to exclude internal edges (holes), so we filter by distance from center
   letterBoundaryPoints = [];
-  internalBoundaryPoints = [];
   
-  // Detect all edges (external and internal)
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
       let idx = y * width + x;
       
       if (isLetterPixel[idx]) {
+        // Check if this is an edge (has non-letter neighbor)
         let isEdge = false;
-        
-        // Check 4-connectivity (up, down, left, right only)
-        if (!isLetterPixel[idx - width] ||
-            !isLetterPixel[idx + width] ||
-            !isLetterPixel[idx - 1] ||
-            !isLetterPixel[idx + 1]) {
+        if (!isLetterPixel[idx - width] ||      // up
+            !isLetterPixel[idx + width] ||      // down
+            !isLetterPixel[idx - 1] ||          // left
+            !isLetterPixel[idx + 1]) {          // right
           isEdge = true;
         }
         
-        // If edge, count non-letter neighbors and determine if internal
         if (isEdge) {
+          // Check if this is an EXTERNAL edge
+          // External edges are those with more non-letter neighbors in one direction
           let nonLetterNeighbors = 0;
           for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
@@ -291,17 +271,9 @@ function updateLetterBoundary() {
             }
           }
           
-          if (nonLetterNeighbors >= 1) {
-            // Classify as internal or external based on neighbor count
-            // High non-letter neighbors = external edge
-            // Low non-letter neighbors = internal edge (surrounded by letter)
-            if (nonLetterNeighbors >= 5) {
-              // External edge
-              letterBoundaryPoints.push({ x, y });
-            } else {
-              // Internal edge (hole/gap in letter)
-              internalBoundaryPoints.push({ x, y });
-            }
+          // Keep only if has at least 2 non-letter neighbors (likely external)
+          if (nonLetterNeighbors >= 2) {
+            letterBoundaryPoints.push({ x, y });
           }
         }
       }
@@ -312,7 +284,7 @@ function updateLetterBoundary() {
 }
 
 async function startGrowth() {
-  if (letterBoundaryPoints.length === 0 && internalBoundaryPoints.length === 0) {
+  if (letterBoundaryPoints.length === 0) {
     return;
   }
 
@@ -320,21 +292,16 @@ async function startGrowth() {
   branches = [];
   drawnSegments = [];
 
-  // External branches: sample every 2-3 points
-  let externalSampleRate = max(2, floor(letterBoundaryPoints.length / 200));
-  for (let i = 0; i < letterBoundaryPoints.length; i += externalSampleRate) {
+  // Spawn branches from boundary points with RADIAL direction
+  let sampleRate = max(1, floor(letterBoundaryPoints.length / 300));
+  for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
     let point = letterBoundaryPoints[i];
+    
+    // Calculate radial angle (from center toward the point)
     let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
-    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, false);
-    branches.push(newBranch);
-  }
-
-  // Internal branches: sample every 2-3 points (10x slower growth)
-  let internalSampleRate = max(2, floor(internalBoundaryPoints.length / 200));
-  for (let i = 0; i < internalBoundaryPoints.length; i += internalSampleRate) {
-    let point = internalBoundaryPoints[i];
-    let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
-    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, true);
+    
+    // Create branch with radial direction
+    let newBranch = new Branch(point.x, point.y, radialAngle);
     branches.push(newBranch);
   }
 
@@ -513,7 +480,6 @@ function draw() {
       if (micActive && audioInput) {
         try {
           audioLevel = audioInput.getLevel();
-          currentAudioLevel = audioLevel;
           
           if (fft) {
             let spectrum = fft.analyze();
@@ -523,8 +489,10 @@ function draw() {
             }
             energy = energy / spectrum.length / 255;
             audioLevel = max(audioLevel, energy);
-            currentAudioLevel = audioLevel;
           }
+          
+          let rate = 0.5 + audioLevel * 12;
+          growthSpeed = rate * parseFloat(speedSlider.value);
           
           if (audioLevel > 0.02) {
             let percentage = min(100, (audioLevel * 100).toFixed(0));
@@ -537,11 +505,11 @@ function draw() {
     } else if (mode === 'mouse') {
       attractX = mouseX;
       attractY = mouseY;
-      currentAudioLevel = 0;
+      growthSpeed = parseFloat(speedSlider.value);
     }
 
     for (let i = branches.length - 1; i >= 0; i--) {
-      branches[i].update(attractX, attractY, currentAudioLevel);
+      branches[i].update(attractX, attractY);
     }
 
     branches = branches.filter(b => 

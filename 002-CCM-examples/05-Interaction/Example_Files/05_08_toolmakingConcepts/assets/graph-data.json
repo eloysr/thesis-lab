@@ -1,0 +1,261 @@
+
+{
+  "clusters": {
+    "maker": { "color": "#ffb846", "label": "Body & Maker" },
+    "material": { "color": "#3992ff", "label": "Material & Form" },
+    "process": { "color": "#32ff8e", "label": "Process & Time" },
+    "system": { "color": "#ff3992", "label": "System & Context" },
+    "experiential": { "color": "#ffffff", "label": "Experiential Principle" }
+  },
+  "concepts": [
+    {
+      "id": "embodiment",
+      "label": "Embodiment",
+      "cluster": "maker",
+      "desc": "How the tool integrates with the body - its weight, balance, grip, the muscle groups it activates. A well-embodied tool disappears in use; the maker stops perceiving the tool and perceives only the material. This state - readiness-to-hand - is the signature of a tool that fits.",
+      "x": 210,
+      "y": 180
+    },
+    {
+      "id": "extension",
+      "label": "Extension",
+      "cluster": "maker",
+      "desc": "The tool as prosthesis - an extension of the body into the world. The hammer extends the fist. The telescope extends the eye. Every extension amplifies certain capacities while filtering out others.",
+      "x": 125,
+      "y": 278
+    },
+    {
+      "id": "literacy",
+      "label": "Literacy",
+      "cluster": "maker",
+      "desc": "The knowledge required to use the tool effectively. Literacy includes knowing when to use a tool, when not to, and what it fundamentally cannot do. Below a minimum threshold, the tool is simply incomprehensible.",
+      "x": 188,
+      "y": 390
+    },
+    {
+      "id": "coupling",
+      "label": "Coupling",
+      "cluster": "maker",
+      "desc": "How tightly the tool connects input to output. A tightly coupled tool responds to every micro-variation in the maker's action. A loosely coupled tool averages or smooths input. Tight coupling rewards skill and exposes error; loose coupling is forgiving but less expressive.",
+      "x": 300,
+      "y": 305
+    },
+    {
+      "id": "resistance",
+      "label": "Resistance",
+      "cluster": "material",
+      "desc": "The degree to which the tool or material pushes back. Distinct from constraint - constraint limits what is possible; resistance determines how much effort the possible requires. Resistance is information: it tells the maker about the material's structure and behaviour.",
+      "x": 510,
+      "y": 158
+    },
+    {
+      "id": "grain",
+      "label": "Grain",
+      "cluster": "material",
+      "desc": "Every material has directions in which it yields most easily and directions in which it resists. The grain is a bias, a preferred direction that can be followed or opposed. Working with or against the grain produces fundamentally different results.",
+      "x": 628,
+      "y": 222
+    },
+    {
+      "id": "accumulation",
+      "label": "Accumulation",
+      "cluster": "material",
+      "desc": "Some tools work by addition (brush, trowel), others by subtraction (chisel, file), others by transformation (kiln, press). The logic of accumulation determines the entire structure of the making process - its sequence, reversibility, and relationship to error.",
+      "x": 682,
+      "y": 340
+    },
+    {
+      "id": "resolution",
+      "label": "Resolution",
+      "cluster": "material",
+      "desc": "The fineness of the tool's action. A broad brush operates at low resolution. Resolution determines not just scale but the kind of thinking the tool induces: coarse tools encourage gestural thinking; fine tools encourage local, detail-oriented thinking.",
+      "x": 588,
+      "y": 428
+    },
+    {
+      "id": "scale",
+      "label": "Scale",
+      "cluster": "material",
+      "desc": "The range of sizes at which the tool operates effectively. Scale is not only physical - it is also cognitive. Tools calibrated for fine work induce a different quality of attention than tools calibrated for large work.",
+      "x": 478,
+      "y": 362
+    },
+    {
+      "id": "constraint",
+      "label": "Constraint",
+      "cluster": "process",
+      "desc": "What the tool cannot do. The limits of possibility built into the object itself. Constraint is not merely restrictive - it is generative. By eliminating options, it deepens engagement with those that remain.",
+      "x": 360,
+      "y": 178
+    },
+    {
+      "id": "reversibility",
+      "label": "Reversibility",
+      "cluster": "process",
+      "desc": "Whether the tool's actions can be undone. Pencil is reversible. Chisel is not. This is one of the most consequential properties of any tool, because it directly determines the cost of error - and therefore the psychological relationship of the user to the act of making.",
+      "x": 440,
+      "y": 508
+    },
+    {
+      "id": "latency",
+      "label": "Latency",
+      "cluster": "process",
+      "desc": "The delay between action and result. Digital tools can have near-zero latency. A darkroom photograph has hours. Kiln-fired ceramics have days. Long latency forces commitment to decisions whose consequences cannot be immediately verified.",
+      "x": 315,
+      "y": 530
+    },
+    {
+      "id": "threshold",
+      "label": "Threshold",
+      "cluster": "process",
+      "desc": "The minimum force, speed, or precision required to activate the tool's function. Thresholds create zones of sensitivity - areas where small changes in input produce large changes in output.",
+      "x": 390,
+      "y": 428
+    },
+    {
+      "id": "repeatability",
+      "label": "Repeatability",
+      "cluster": "process",
+      "desc": "Whether the tool produces the same result each time. A rubber stamp is highly repeatable. A brush loaded with ink is not. High repeatability enables precision; low repeatability enables surprise and discovery.",
+      "x": 538,
+      "y": 530
+    },
+    {
+      "id": "affordance",
+      "label": "Affordance",
+      "cluster": "system",
+      "desc": "What the tool invites you to do by its shape, weight, and material. Affordances are not just functional - they are cognitive. The tool communicates its use before you consciously decide how to use it.",
+      "x": 208,
+      "y": 510
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "cluster": "system",
+      "desc": "What the tool tells you as you use it. Haptic, visual, auditory feedback. Feedback closes the loop between intention and result. A tool with no feedback teaches nothing. A tool with rich feedback teaches constantly.",
+      "x": 132,
+      "y": 428
+    },
+    {
+      "id": "memory",
+      "label": "Memory",
+      "cluster": "system",
+      "desc": "Some tools accumulate use - a worn handle, a seasoned pan, a broken-in shoe. The tool carries the history of its use in its material. This memory shapes future use: the groove worn by one hand guides the next into the same grip.",
+      "x": 728,
+      "y": 458
+    },
+    {
+      "id": "delegation",
+      "label": "Delegation",
+      "cluster": "system",
+      "desc": "What the tool does autonomously, without the maker's active direction. A lathe holds rotation constant so the maker can focus on the cut. Every act of delegation is also a transfer of authorship - the tool makes decisions the maker no longer makes.",
+      "x": 792,
+      "y": 212
+    },
+    {
+      "id": "inheritance",
+      "label": "Inheritance",
+      "cluster": "system",
+      "desc": "Every tool inherits from its predecessors - in its form, conventions of use, and associated techniques. This lineage carries assumptions embedded in the object itself that are rarely examined.",
+      "x": 788,
+      "y": 552
+    },
+    {
+      "id": "context",
+      "label": "Context",
+      "cluster": "system",
+      "desc": "The conditions under which the tool is used - light, posture, time pressure, social setting. The same tool behaves differently in different contexts. Context is not separate from the tool - it is part of the tool's effective behaviour.",
+      "x": 662,
+      "y": 578
+    },
+    {
+      "id": "failure",
+      "label": "Failure\nMode",
+      "cluster": "system",
+      "desc": "How the tool breaks down, and what happens when it does. A pencil's failure (the tip breaks) is local and recoverable. A kiln's failure is total and irreversible. The failure mode shapes the maker's risk tolerance.",
+      "x": 858,
+      "y": 388
+    }
+  ],
+  "experiential": [
+    {
+      "id": "exp_attention",
+      "label": "Attention\nShift",
+      "cluster": "experiential",
+      "sources": ["embodiment", "coupling", "feedback"],
+      "desc": "When a familiar process is disrupted or made more difficult, attention shifts from the goal to the process itself. Automatism - the default mode of practised skill - is interrupted. Each action becomes deliberate, conscious, considered.",
+      "talkingPoint": "The Attention Shift is what happens when embodiment breaks down - deliberately. You engineer a moment where the tool stops disappearing and becomes visible again.",
+      "x": 68,
+      "y": 148
+    },
+    {
+      "id": "exp_flow",
+      "label": "Flow &\nChallenge",
+      "cluster": "experiential",
+      "sources": ["threshold", "coupling", "literacy", "scale"],
+      "desc": "Optimal creative experience arises at the precise point where challenge and skill are in balance. Too little challenge produces boredom; too much produces anxiety. Constraint is a precise instrument for calibrating this balance.",
+      "talkingPoint": "Flow is not a psychological state you find - it is a state the tool either makes possible or prevents. The tool's threshold, coupling, and scale determine whether the challenge is optimal or merely unpleasant.",
+      "x": 68,
+      "y": 572
+    },
+    {
+      "id": "exp_imperfection",
+      "label": "Aesthetics of\nImperfection",
+      "cluster": "experiential",
+      "sources": ["reversibility", "grain", "memory", "failure"],
+      "desc": "The pursuit of technical perfection can eliminate risk, surprise, and life from the work. Accepting - or deliberately introducing - incompleteness restores openness. The trace of difficulty and limit in the finished work carries its own expressive weight.",
+      "talkingPoint": "The aesthetics of imperfection is produced by irreversibility, grain, and failure mode - not chosen. The fresco crack, the kintsugi fracture, the bitmap staircase are each the direct visual record of a tool's limits meeting material's resistance.",
+      "x": 898,
+      "y": 572
+    },
+    {
+      "id": "exp_negative",
+      "label": "Negative\nCapability",
+      "cluster": "experiential",
+      "sources": ["latency", "reversibility", "literacy", "delegation"],
+      "desc": "The capacity to remain in uncertainty, ambiguity, and irresolution without anxiously reaching for closure - this is a precondition of creative depth. Constraint, by blocking the easy route, forces the practitioner to dwell in the problem longer.",
+      "talkingPoint": "Negative Capability is the experiential description of what latency and irreversibility produce structurally. A tool with long latency and low reversibility forces the maker into exactly this state - not by philosophy but by mechanics.",
+      "x": 898,
+      "y": 148
+    }
+  ],
+  "mechEdges": [
+    ["embodiment", "extension"], ["embodiment", "coupling"], ["extension", "literacy"],
+    ["coupling", "feedback"], ["coupling", "threshold"], ["literacy", "affordance"],
+    ["resistance", "grain"], ["resistance", "accumulation"], ["grain", "scale"],
+    ["accumulation", "reversibility"], ["accumulation", "resolution"], ["scale", "resolution"],
+    ["constraint", "threshold"], ["constraint", "reversibility"], ["latency", "reversibility"],
+    ["latency", "repeatability"], ["threshold", "resistance"], ["repeatability", "memory"],
+    ["affordance", "feedback"], ["feedback", "coupling"], ["delegation", "inheritance"],
+    ["context", "affordance"], ["context", "failure"], ["memory", "inheritance"],
+    ["failure", "reversibility"], ["embodiment", "feedback"], ["embodiment", "resistance"],
+    ["extension", "scale"], ["extension", "delegation"], ["constraint", "affordance"],
+    ["constraint", "grain"], ["resistance", "feedback"], ["resolution", "coupling"],
+    ["latency", "context"], ["repeatability", "delegation"], ["scale", "embodiment"],
+    ["accumulation", "delegation"], ["inheritance", "literacy"], ["memory", "context"],
+    ["failure", "literacy"], ["threshold", "feedback"]
+  ],
+  "related": {
+    "embodiment": ["extension", "coupling", "feedback", "resistance", "scale"],
+    "extension": ["embodiment", "scale", "delegation", "literacy"],
+    "literacy": ["affordance", "inheritance", "failure", "coupling"],
+    "coupling": ["feedback", "threshold", "embodiment", "resolution"],
+    "resistance": ["grain", "feedback", "embodiment", "constraint", "threshold"],
+    "grain": ["resistance", "scale", "accumulation", "constraint"],
+    "accumulation": ["reversibility", "resolution", "delegation", "resistance"],
+    "resolution": ["scale", "coupling", "accumulation", "constraint"],
+    "scale": ["resolution", "embodiment", "extension", "grain"],
+    "constraint": ["affordance", "grain", "threshold", "reversibility", "resistance"],
+    "reversibility": ["accumulation", "latency", "failure", "constraint"],
+    "latency": ["reversibility", "context", "repeatability"],
+    "threshold": ["resistance", "coupling", "feedback", "constraint"],
+    "repeatability": ["memory", "delegation", "latency"],
+    "affordance": ["feedback", "context", "constraint", "literacy"],
+    "feedback": ["coupling", "embodiment", "resistance", "affordance", "threshold"],
+    "memory": ["inheritance", "context", "repeatability"],
+    "delegation": ["extension", "accumulation", "repeatability", "inheritance"],
+    "inheritance": ["literacy", "memory", "delegation", "context"],
+    "context": ["affordance", "latency", "memory", "failure"],
+    "failure": ["reversibility", "context", "literacy"]
+  }
+}

@@ -1,0 +1,46 @@
+<!--
+    This HTML file loads styles, libraries, and the project files.
+    The canvas itself is created dynamically in js/sketch.js.
+  -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <!-- Basic document metadata and responsive behavior. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Browser tab title. -->
+  <title>Multitouch</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- External libraries -->
+  <script src="libraries/p5.js"></script>
+
+  <!-- Project files -->
+  <script src="js/sketch.js"></script>
+
+</head>
+
+<body>
+  <!-- The p5.js canvas is injected here at runtime. -->
+
+    <!-- TOP RIGHT: Reset & Download -->
+  <div class="icon-group icon-group--top-right">
+    <img class="icon" src="assets/reset.svg" onclick="reset()" draggable="false">
+    <img class="icon" src="assets/upload.svg" onclick="uploadFile()" draggable="false">
+    <img class="icon" src="assets/download.svg" onclick="exportPNG()" draggable="false">
+  </div>
+
+  <!-- BOTTOM RIGHT: Grid Size & Color Toggle -->
+  <div class="icon-group icon-group--bottom-right">
+    <img class="icon" src="assets/transfer.svg" id="transfer" draggable="false" onclick="setStyle('transfer')">
+    <img class="icon" src="assets/transtition.svg" id="transition" draggable="false" onclick="setStyle('transition')">
+  </div>
+</body>
+
+</html>
