@@ -1,6 +1,6 @@
 // Growing Letter - Interactive Sound/Mouse-Driven Organic Typography Growth
 // eloy segura @ altura x
-// Last updated: 2026-08-20 18:30:00
+// Last updated: 2026-08-20 18:45:00
 
 let canvas;
 let letters = "A";
@@ -30,7 +30,7 @@ let fft;
 let micActive = false;
 let fontSizeTimeout;
 
-const BUILD_TIME = "2026-08-20 18:30:00";
+const BUILD_TIME = "2026-08-20 18:45:00";
 
 class Branch {
   constructor(x, y, angle, parentAngle = null, generation = 0, audioLevel = 0) {
@@ -205,46 +205,60 @@ function updateLetterBoundary() {
   letterCenter.x = width / 2;
   letterCenter.y = height / 2;
 
-  letterBoundaryPoints = [];
+  let pg = createGraphics(width, height);
+  pg.fill(255);
+  pg.textAlign(CENTER, CENTER);
+  pg.drawingContext.font = "bold " + fontSize + "px Helvetica";
 
-  // Generate points along 360 degrees from center
-  let numRays = 360;
-  let radius = max(width, height) / 2;
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = pg.textWidth(letters[i]);
+    totalWidth += charWidth + 20;
+  }
 
-  for (let i = 0; i < numRays; i++) {
-    let angle = (i / numRays) * TWO_PI;
-    
-    // Raycast from center outward at this angle
-    for (let r = radius * 0.1; r < radius; r += 2) {
-      let x = letterCenter.x + cos(angle) * r;
-      let y = letterCenter.y + sin(angle) * r;
-      
-      if (isPointInLetter(x, y)) {
-        letterBoundaryPoints.push({ x: floor(x), y: floor(y) });
-        break;
+  let startX = (width - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = pg.textWidth(char);
+    pg.text(char, currentX + charWidth / 2, height / 2);
+    currentX += charWidth + 20;
+  }
+
+  try {
+    let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
+    letterBoundaryPoints = [];
+
+    for (let y = 2; y < height - 2; y += 3) {
+      for (let x = 2; x < width - 2; x += 3) {
+        let idx = (y * width + x) * 4 + 3;
+        if (pixels[idx] > 128) {
+          let up = ((y - 1) * width + x) * 4 + 3;
+          let down = ((y + 1) * width + x) * 4 + 3;
+          let left = (y * width + (x - 1)) * 4 + 3;
+          let right = (y * width + (x + 1)) * 4 + 3;
+          
+          if (pixels[up] <= 128 || pixels[down] <= 128 || pixels[left] <= 128 || pixels[right] <= 128) {
+            letterBoundaryPoints.push({ x, y });
+          }
+        }
       }
+    }
+  } catch (e) {
+    console.warn('Could not extract pixels, using fallback');
+    // Fallback: generate points in circle
+    for (let a = 0; a < TWO_PI; a += 0.05) {
+      let r = 50;
+      letterBoundaryPoints.push({
+        x: letterCenter.x + cos(a) * r,
+        y: letterCenter.y + sin(a) * r
+      });
     }
   }
 
+  pg.remove();
   console.log('✓ Found', letterBoundaryPoints.length, 'boundary points');
-}
-
-function isPointInLetter(px, py) {
-  // Create a small text rendering to check if point is inside
-  let ctx = createGraphics(3, 3).drawingContext;
-  ctx.font = "bold " + fontSize + "px Helvetica";
-  ctx.fillStyle = "white";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(letters[0], 1, 1);
-  
-  try {
-    let imgData = ctx.getImageData(1, 1, 1, 1).data;
-    return imgData[3] > 128;
-  } catch (e) {
-    // Fallback: use distance-based approximation
-    return true;
-  }
 }
 
 async function startGrowth() {
