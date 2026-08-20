@@ -16,25 +16,26 @@ body {
   color: var(--texto);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  padding: 8vh 6vw;
+  padding: 3vh 6vw 4rem;
   max-width: 800px;
 }
 
 header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 h1 {
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .subtitulo {
   color: var(--apagado);
   font-size: 1rem;
   max-width: 80ch;
+  margin-bottom: 4rem;
 }
 
 .back-link {
@@ -53,7 +54,7 @@ h1 {
 }
 
 section {
-  margin-bottom: 4rem;
+  margin-bottom: 1.5rem;
 }
 
 h2 {
@@ -62,9 +63,9 @@ h2 {
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: var(--apagado);
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--linea);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 h3 {
@@ -92,7 +93,7 @@ a {
   display: flex;
   align-items: baseline;
   gap: 1rem;
-  padding: 1.1rem 0;
+  padding: 0.55rem 0;
   color: var(--texto);
   text-decoration: none;
   transition: padding-left 0.2s ease, color 0.2s ease;
@@ -130,11 +131,12 @@ a:hover {
 }
 
 footer {
-  margin-top: 8rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--linea);
+  position: fixed;
+  bottom: 1.25rem;
+  right: 2rem;
   color: var(--apagado);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  text-align: right;
 }
 
 footer a {
@@ -150,7 +152,7 @@ footer a:hover {
 }
 
 #meta {
-  color: var(--linea);
+  color: var(#777);
   font-variant-numeric: tabular-nums;
 }
 
