@@ -194,14 +194,22 @@ function setup() {
     }
   });
 
-  updateLetterBoundary();
+  updateModeButtons();
   updateTimestamp();
   setInterval(updateTimestamp, 1000);
+
+  // Initialize letter boundary only if canvas has valid size
+  if (width > 0 && height > 0) {
+    updateLetterBoundary();
+  }
 
   window.addEventListener('resize', () => {
     const rect = holder.getBoundingClientRect();
     resizeCanvas(rect.width, rect.height);
-    redrawCanvas();
+    if (width > 0 && height > 0) {
+      updateLetterBoundary();
+      if (!isGrowing) redrawCanvas();
+    }
   });
 }
 
@@ -223,6 +231,9 @@ function updateTimestamp() {
 }
 
 function updateLetterBoundary() {
+  // Safety check: ensure canvas has valid dimensions
+  if (width <= 0 || height <= 0) return;
+
   let tempG = createGraphics(width, height);
   tempG.fill(255);
   tempG.textAlign(CENTER, CENTER);
