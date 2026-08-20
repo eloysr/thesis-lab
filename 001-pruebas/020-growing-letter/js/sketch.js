@@ -17,7 +17,6 @@ let letterCenter = { x: 0, y: 0 };
 let fontSize = 160;
 let drawnSegments = [];
 let currentAudioLevel = 0;
-let isUpdatingBoundary = false;
 
 // UI Elements
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn;
@@ -225,116 +224,86 @@ function updateTimestamp() {
 }
 
 function updateLetterBoundary() {
-  if (isUpdatingBoundary) return;
   if (width <= 100 || height <= 100) return;
-  
-  isUpdatingBoundary = true;
 
-  try {
-    let tempG = createGraphics(width, height);
-    tempG.fill(255);
-    tempG.textAlign(CENTER, CENTER);
-    tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
+  letterCenter.x = width / 2;
+  letterCenter.y = height / 2;
 
-    let totalWidth = 0;
-    for (let i = 0; i < letters.length; i++) {
-      let charWidth = tempG.textWidth(letters[i]);
-      totalWidth += charWidth + 20;
-    }
+  letterBoundaryPoints = [];
+  internalBoundaryPoints = [];
 
-    let startX = (width - totalWidth) / 2;
-    let currentX = startX;
+  // Generate points by raymarching from center outward
+  let numRays = 360; // One ray per degree
+  let maxDistance = max(width, height);
 
-    for (let i = 0; i < letters.length; i++) {
-      let char = letters[i];
-      let charWidth = tempG.textWidth(char);
-      tempG.text(char, currentX + charWidth / 2, height / 2);
-      currentX += charWidth + 20;
-    }
+  for (let angle = 0; angle < TWO_PI; angle += TWO_PI / numRays) {
+    // Cast ray from center outward
+    for (let distance = 10; distance < maxDistance; distance += 2) {
+      let x = letterCenter.x + cos(angle) * distance;
+      let y = letterCenter.y + sin(angle) * distance;
 
-    letterCenter.x = width / 2;
-    letterCenter.y = height / 2;
-
-    // Use canvas directly instead of creating large array
-    let ctx = tempG.drawingContext;
-    let imgData = ctx.getImageData(0, 0, width, height);
-    let data = imgData.data;
-
-    letterBoundaryPoints = [];
-    internalBoundaryPoints = [];
-    
-    // Scan for edges directly without intermediate array
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        let idx = (y * width + x) * 4 + 3; // Alpha channel
-        let currAlpha = data[idx] > 50;
-        
-        // Check if edge
-        let upAlpha = data[((y - 1) * width + x) * 4 + 3] > 50;
-        let downAlpha = data[((y + 1) * width + x) * 4 + 3] > 50;
-        let leftAlpha = data[(y * width + (x - 1)) * 4 + 3] > 50;
-        let rightAlpha = data[(y * width + (x + 1)) * 4 + 3] > 50;
-        
-        if (currAlpha && (!upAlpha || !downAlpha || !leftAlpha || !rightAlpha)) {
-          // Count non-letter neighbors
-          let nonLetterNeighbors = 0;
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              if (dx === 0 && dy === 0) continue;
-              let nidx = ((y + dy) * width + (x + dx)) * 4 + 3;
-              if (data[nidx] <= 50) nonLetterNeighbors++;
-            }
-          }
-          
-          if (nonLetterNeighbors >= 1) {
-            if (nonLetterNeighbors >= 3) {
-              letterBoundaryPoints.push({ x, y });
-            } else {
-              internalBoundaryPoints.push({ x, y });
-            }
-          }
-        }
+      // Check if point is inside letter by rendering text and checking
+      if (isPointInText(x, y)) {
+        // Found edge - store it
+        letterBoundaryPoints.push({ x: floor(x), y: floor(y) });
+        break;
       }
     }
-
-    tempG.remove();
-    console.log('✓ Letter boundary updated:', letterBoundaryPoints.length, 'external +', internalBoundaryPoints.length, 'internal');
-  } catch (e) {
-    console.error('Error in updateLetterBoundary:', e);
-  } finally {
-    isUpdatingBoundary = false;
   }
+
+  console.log('✓ Letter boundary updated:', letterBoundaryPoints.length, 'points');
+}
+
+function isPointInText(px, py) {
+  // Render letter and check if pixel is covered
+  let tempG = createGraphics(width, height);
+  tempG.fill(255);
+  tempG.textAlign(CENTER, CENTER);
+  tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
+
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = tempG.textWidth(letters[i]);
+    totalWidth += charWidth + 20;
+  }
+
+  let startX = (width - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = tempG.textWidth(char);
+    tempG.text(char, currentX + charWidth / 2, height / 2);
+    currentX += charWidth + 20;
+  }
+
+  // Use a simplified check: check if pixel is white
+  let imgData = tempG.drawingContext.getImageData(floor(px), floor(py), 1, 1).data;
+  tempG.remove();
+
+  return imgData[3] > 50; // Check alpha channel
 }
 
 async function startGrowth() {
-  // Ensure boundary is up-to-date
   updateLetterBoundary();
-  
-  if (letterBoundaryPoints.length === 0 && internalBoundaryPoints.length === 0) {
-    console.warn('No boundary points found. Letter may be too small or invisible.');
-    micStatusText.textContent = 'No contour detected';
+
+  if (letterBoundaryPoints.length === 0) {
+    console.warn('No boundary points found');
+    micStatusText.textContent = 'No contour';
     return;
   }
 
-  console.log('Starting growth with', letterBoundaryPoints.length + internalBoundaryPoints.length, 'branches');
-  
+  console.log('Starting growth with', letterBoundaryPoints.length, 'branches');
+
   isGrowing = true;
   branches = [];
   drawnSegments = [];
 
-  let externalSampleRate = max(2, floor(letterBoundaryPoints.length / 600));
-  for (let i = 0; i < letterBoundaryPoints.length; i += externalSampleRate) {
+  let sampleRate = max(1, floor(letterBoundaryPoints.length / 200));
+  for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
     let point = letterBoundaryPoints[i];
     let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
     let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, false);
-    branches.push(newBranch);
-  }
-
-  let internalSampleRate = max(2, floor(internalBoundaryPoints.length / 600));
-  for (let i = 0; i < internalBoundaryPoints.length; i += internalSampleRate) {
-    let point = internalBoundaryPoints[i];
-    let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
-    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, true);
     branches.push(newBranch);
   }
 
