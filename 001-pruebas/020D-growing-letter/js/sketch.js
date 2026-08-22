@@ -218,18 +218,21 @@ function setup() {
 
   // Recompute contour and redraw when the text area changes.
   letterInput.addEventListener('input', () => {
+    if (isGrowing) return;
     letters = letterInput.value || 'A';
     updateLetterBoundary();
     if (!isGrowing) redrawCanvas();
   });
 
   textAlignSelect.addEventListener('change', (event) => {
+    if (isGrowing) return;
     textAlignMode = event.target.value || 'center';
     updateLetterBoundary();
     if (!isGrowing) redrawCanvas();
   });
 
   fontFamilySelect.addEventListener('change', (event) => {
+    if (isGrowing) return;
     fontFamilyMode = event.target.value || 'Helvetica Bold';
     updateLetterBoundary();
     if (!isGrowing) redrawCanvas();
@@ -734,8 +737,7 @@ async function startGrowth() {
   startBtn.disabled = true;
   stopBtn.disabled = false;
   clearBtn.disabled = false;
-  letterInput.disabled = true;
-  fontSizeSlider.disabled = true;
+  setLetterConfigurationLocked(true);
   exportBtn.disabled = false;
 
   // Activate either the selected audio file or the microphone, depending on what is available.
@@ -787,6 +789,13 @@ async function startGrowth() {
 }
 
 // ===== Rendering helpers =====
+function setLetterConfigurationLocked(isLocked) {
+  if (letterInput) letterInput.disabled = isLocked;
+  if (textAlignSelect) textAlignSelect.disabled = isLocked;
+  if (fontFamilySelect) fontFamilySelect.disabled = isLocked;
+  if (fontSizeSlider) fontSizeSlider.disabled = isLocked;
+}
+
 // Stops growth and restores editable controls.
 function stopGrowth() {
   isGrowing = false;
@@ -819,13 +828,12 @@ function stopGrowth() {
   startBtn.disabled = false;
   stopBtn.disabled = true;
   clearBtn.disabled = false;
-  letterInput.disabled = false;
-  fontSizeSlider.disabled = false;
 }
 
 // Clears current growth while keeping the current letter/settings.
 function clearGrowth() {
   stopGrowth();
+  setLetterConfigurationLocked(false);
   branches = [];
   drawnSegments = [];
   lastMouseX = null;
