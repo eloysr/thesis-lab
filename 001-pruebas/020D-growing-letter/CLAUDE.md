@@ -4,6 +4,12 @@
 **Version**: v1.0  
 **Author**: eloy segura @ altura x  
 
+## Working rules for future notes
+- When a value, setting, label, or behavior is identified in code, always provide the exact file path and the line number in the answer.
+- Example format: `js/sketch.js:44-45` or `css/style.css:423-430`.
+- This applies to version strings, credits, labels, UI text, logic rules, and any requested change.
+- The project context should keep this convention consistent so it is easy to locate the exact source of each change.
+
 ---
 
 ## 01. Concept

@@ -10,8 +10,11 @@ let mode = "sound";
 let isGrowing = false;
 let growthSpeed = 0.25;
 let invertColors = false;
+let textAlignMode = 'center';
+let fontFamilyMode = 'Helvetica Bold';
 let audioInput;
 let soundFile;
+let audioFileInput;
 
 // Growth simulation data.
 let branches = [];
@@ -24,6 +27,7 @@ let currentAudioLevel = 0;
 
 // UI element references.
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn, invertBtn;
+let textAlignSelect, fontFamilySelect;
 let fontSizeSlider, fontSizeValue;
 let modeButtons = {};
 let speedSlider, speedValue;
@@ -172,6 +176,8 @@ function setup() {
   canvas.parent('sketch-holder');
 
   letterInput = document.getElementById('letterInput');
+  textAlignSelect = document.getElementById('textAlignSelect');
+  fontFamilySelect = document.getElementById('fontFamilySelect');
   startBtn = document.getElementById('startBtn');
   stopBtn = document.getElementById('stopBtn');
   clearBtn = document.getElementById('clearBtn');
@@ -183,14 +189,48 @@ function setup() {
   speedValue = document.getElementById('speedValue');
   modeButtons.sound = document.getElementById('modeSound');
   modeButtons.mouse = document.getElementById('modeMouse');
+  audioFileInput = document.getElementById('audioFile');
   micIndicator = document.getElementById('micIndicator');
   micStatusText = document.getElementById('micStatusText');
   timestamp = document.getElementById('timestamp');
   exportBtn.disabled = false;
 
+  if (audioFileInput) {
+    audioFileInput.addEventListener('change', (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (soundFile && typeof soundFile.stop === 'function') {
+        soundFile.stop();
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      soundFile = loadSound(objectUrl, () => {
+        micStatusText.textContent = 'File ready';
+        micIndicator.classList.remove('active');
+        micIndicator.classList.add('ready');
+        micIndicator.classList.remove('off');
+      }, () => {
+        micStatusText.textContent = 'Audio error';
+      });
+    });
+  }
+
   // Recompute contour and redraw when the text area changes.
   letterInput.addEventListener('input', () => {
     letters = letterInput.value || 'A';
+    updateLetterBoundary();
+    if (!isGrowing) redrawCanvas();
+  });
+
+  textAlignSelect.addEventListener('change', (event) => {
+    textAlignMode = event.target.value || 'center';
+    updateLetterBoundary();
+    if (!isGrowing) redrawCanvas();
+  });
+
+  fontFamilySelect.addEventListener('change', (event) => {
+    fontFamilyMode = event.target.value || 'Helvetica Bold';
     updateLetterBoundary();
     if (!isGrowing) redrawCanvas();
   });
@@ -258,12 +298,20 @@ function setup() {
 // ===== UI helpers =====
 // Reflects active mode in the sidebar button styles.
 function stopMicIfNeeded() {
-  if (!audioInput || !micActive) return;
+  if (audioInput && micActive) {
+    try {
+      audioInput.stop();
+    } catch (e) {
+      console.warn('Mic stop on mode switch failed:', e);
+    }
+  }
 
-  try {
-    audioInput.stop();
-  } catch (e) {
-    console.warn('Mic stop on mode switch failed:', e);
+  if (soundFile && typeof soundFile.stop === 'function') {
+    try {
+      soundFile.stop();
+    } catch (e) {
+      console.warn('Sound file stop on mode switch failed:', e);
+    }
   }
 
   micActive = false;
@@ -300,10 +348,30 @@ function getThemeColors() {
   return { background: 0, foreground: 255 };
 }
 
+function getSelectedFontSpec() {
+  const fontMap = {
+    'Helvetica Bold': { family: "'Helvetica Neue', Helvetica, Arial, sans-serif", weight: 700 },
+    'Helvetica Light': { family: "'Helvetica Neue', Helvetica, Arial, sans-serif", weight: 300 },
+    'Google Elms Sans': { family: "'Elms Sans', 'Segoe UI', Arial, sans-serif", weight: 400 },
+    'Bodoni Moda': { family: "'Bodoni Moda', Georgia, serif", weight: 600 }
+  };
+
+  return fontMap[fontFamilyMode] || fontMap['Helvetica Bold'];
+}
+
+function applyTextFont(targetContext = drawingContext) {
+  const fontSpec = getSelectedFontSpec();
+  const cssFont = `${fontSpec.weight} ${fontSize}px ${fontSpec.family}`;
+  if (targetContext && targetContext.font !== undefined) {
+    targetContext.font = cssFont;
+  }
+  return cssFont;
+}
+
 function updateInvertButton() {
   if (!invertBtn) return;
   invertBtn.classList.toggle('active', invertColors);
-  invertBtn.textContent = invertColors ? 'NORMAL' : 'INVERT';
+  invertBtn.textContent = invertColors ? 'change to dark mode' : 'change to light mode';
 }
 
 function toggleInvertColors() {
@@ -314,28 +382,44 @@ function toggleInvertColors() {
 }
 
 // ===== Contour extraction =====
-// Displays footer metadata with file last-modified when available.
+// Displays footer metadata with a date line and a separate time line.
+function renderFooterMetadata(versionText, authorText, dateText, timeText) {
+  const lines = [
+    `Growing Letters ${versionText}`,
+    authorText,
+    `built ${dateText}`,
+    timeText
+  ];
+
+  timestamp.innerHTML = lines
+    .map((line) => `
+      <div class="meta-line">
+        <span class="meta-text">${line}</span>
+      </div>
+    `)
+    .join('');
+}
+
 async function updateTimestamp() {
   try {
     const response = await fetch('js/sketch.js', { method: 'HEAD' });
     const lastModified = response.headers.get('last-modified');
     if (lastModified) {
       const date = new Date(lastModified);
-      const formatted = date.toLocaleString('en-US', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit', 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit', 
-        hour12: false 
-      });
-      timestamp.textContent = `${APP_VERSION} · eloy segura @ altura x · built ${formatted}`;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      const dateText = `${year}/${month}/${day}`;
+      const timeText = `${hours}:${minutes}:${seconds}`;
+      renderFooterMetadata(APP_VERSION, 'eloy segura @ altura x', dateText, timeText);
     } else {
-      timestamp.textContent = `${APP_VERSION} · eloy segura @ altura x · built ${BUILD_TIME}`;
+      renderFooterMetadata(APP_VERSION, 'eloy segura @ altura x', BUILD_TIME.split(' ')[0], BUILD_TIME.split(' ')[1]);
     }
   } catch (e) {
-    timestamp.textContent = `${APP_VERSION} · eloy segura @ altura x · built ${BUILD_TIME}`;
+    renderFooterMetadata(APP_VERSION, 'eloy segura @ altura x', BUILD_TIME.split(' ')[0], BUILD_TIME.split(' ')[1]);
   }
 }
 
@@ -394,6 +478,40 @@ function getTextLines() {
   return wrapTextToLines(letters);
 }
 
+function getTextHorizontalAlign() {
+  if (textAlignMode === 'left') return LEFT;
+  if (textAlignMode === 'right') return RIGHT;
+  return CENTER;
+}
+
+function getTextAnchorX(lineWidth = 0) {
+  const marginX = min(width * 0.12, 90);
+
+  if (textAlignMode === 'left') {
+    return marginX;
+  }
+
+  if (textAlignMode === 'right') {
+    return width - marginX;
+  }
+
+  return width / 2;
+}
+
+function getTextStartX(lineWidth = 0) {
+  const marginX = min(width * 0.12, 90);
+
+  if (textAlignMode === 'left') {
+    return marginX;
+  }
+
+  if (textAlignMode === 'right') {
+    return width - marginX - lineWidth;
+  }
+
+  return (width - lineWidth) / 2;
+}
+
 function getTextLayout() {
   const lines = getTextLines();
   const lineHeight = fontSize * 0.9;
@@ -404,7 +522,7 @@ function getTextLayout() {
     const line = lines[i];
     const baseY = lineYStart + i * lineHeight;
     const lineWidth = textWidth(line);
-    const startX = (width - lineWidth) / 2;
+    const startX = getTextStartX(lineWidth);
     let currentX = startX;
     const chars = [];
 
@@ -422,7 +540,9 @@ function getTextLayout() {
     layout.push({
       text: line,
       y: baseY,
-      chars
+      chars,
+      xStart: startX,
+      xEnd: currentX
     });
   }
 
@@ -450,20 +570,22 @@ function updateLetterBoundary() {
   if (width <= 100 || height <= 100) return;
 
   const layout = getTextLayout();
-  letterCenter.x = width / 2;
-  letterCenter.y = height / 2;
+  const blockCenters = layout.layout.map(block => (block.xStart + block.xEnd) / 2);
+  letterCenter.x = blockCenters.length > 0 ? blockCenters.reduce((sum, value) => sum + value, 0) / blockCenters.length : width / 2;
+  letterCenter.y = layout.lineYStart + ((layout.lines.length - 1) * layout.lineHeight) / 2;
   letterCenters = getLetterCenters();
 
   // Draw the paragraph on an offscreen buffer to inspect alpha values.
   let pg = createGraphics(width, height);
   pg.fill(255);
-  pg.textAlign(CENTER, CENTER);
-  pg.drawingContext.font = "bold " + fontSize + "px Helvetica";
+  pg.textAlign(getTextHorizontalAlign(), CENTER);
+  applyTextFont(pg.drawingContext);
 
   for (let i = 0; i < layout.lines.length; i++) {
     const line = layout.lines[i];
     const y = layout.lineYStart + i * layout.lineHeight;
-    pg.text(line, width / 2, y);
+    const x = getTextAnchorX(textWidth(line));
+    pg.text(line, x, y);
   }
 
   try {
@@ -616,27 +738,50 @@ async function startGrowth() {
   fontSizeSlider.disabled = true;
   exportBtn.disabled = false;
 
-  // Activate microphone only when sound mode is selected.
+  // Activate either the selected audio file or the microphone, depending on what is available.
   if (mode === 'sound') {
-    try {
-      micStatusText.textContent = 'Requesting mic...';
-      if (!audioInput) audioInput = new p5.AudioIn();
-      if (!fft) {
-        fft = new p5.FFT(0.8, 256);
-        fft.setInput(audioInput);
+    if (soundFile && typeof soundFile.isLoaded === 'function' && soundFile.isLoaded()) {
+      try {
+        if (typeof soundFile.play === 'function') {
+          soundFile.play();
+        }
+        if (typeof soundFile.onended === 'function') {
+          soundFile.onended(() => {
+            if (isGrowing) {
+              stopGrowth();
+            }
+          });
+        }
+        micActive = true;
+        micIndicator.classList.add('active');
+        micIndicator.classList.remove('ready');
+        micIndicator.classList.remove('off');
+        micStatusText.textContent = 'Playing file';
+      } catch (e) {
+        console.error('Audio file playback error:', e);
+        micStatusText.textContent = 'File unavailable';
       }
-      audioInput.start();
-      micActive = true;
-      micReadErrorLogged = false;
-      micIndicator.classList.add('active');
-      micIndicator.classList.remove('ready');
-      micIndicator.classList.remove('off');
-      micStatusText.textContent = 'Listening...';
-    } catch (e) {
-      console.error('Mic error:', e);
-      micStatusText.textContent = 'Mic unavailable';
-      micIndicator.classList.remove('active');
-      micIndicator.classList.add('ready');
+    } else {
+      try {
+        micStatusText.textContent = 'Requesting mic...';
+        if (!audioInput) audioInput = new p5.AudioIn();
+        if (!fft) {
+          fft = new p5.FFT(0.8, 256);
+          fft.setInput(audioInput);
+        }
+        audioInput.start();
+        micActive = true;
+        micReadErrorLogged = false;
+        micIndicator.classList.add('active');
+        micIndicator.classList.remove('ready');
+        micIndicator.classList.remove('off');
+        micStatusText.textContent = 'Listening...';
+      } catch (e) {
+        console.error('Mic error:', e);
+        micStatusText.textContent = 'Mic unavailable';
+        micIndicator.classList.remove('active');
+        micIndicator.classList.add('ready');
+      }
     }
   }
 }
@@ -653,6 +798,15 @@ function stopGrowth() {
       console.error('Mic stop error:', e);
     }
   }
+
+  if (soundFile && typeof soundFile.stop === 'function') {
+    try {
+      soundFile.stop();
+    } catch (e) {
+      console.error('Sound file stop error:', e);
+    }
+  }
+
   micIndicator.classList.remove('active');
   if (mode === 'sound') {
     micIndicator.classList.add('ready');
@@ -691,13 +845,14 @@ function redrawCanvas() {
   }
 
   fill(theme.foreground);
-  textAlign(CENTER, CENTER);
-  drawingContext.font = "bold " + fontSize + "px Helvetica";
+  textAlign(getTextHorizontalAlign(), CENTER);
+  applyTextFont(drawingContext);
 
   for (let i = 0; i < layout.lines.length; i++) {
     const line = layout.lines[i];
     const y = layout.lineYStart + i * layout.lineHeight;
-    text(line, width / 2, y);
+    const x = getTextAnchorX(textWidth(line));
+    text(line, x, y);
   }
 }
 
@@ -718,13 +873,15 @@ function exportPNG() {
   }
 
   exportGraphics.fill(theme.foreground);
-  exportGraphics.textAlign(CENTER, CENTER);
-  exportGraphics.drawingContext.font = "bold " + (fontSize * scale) + "px Helvetica";
+  exportGraphics.textAlign(getTextHorizontalAlign(), CENTER);
+  applyTextFont(exportGraphics.drawingContext);
+  exportGraphics.drawingContext.font = `${getSelectedFontSpec().weight} ${fontSize * scale}px ${getSelectedFontSpec().family}`;
 
   for (let i = 0; i < layout.lines.length; i++) {
     const line = layout.lines[i];
     const y = (layout.lineYStart + i * layout.lineHeight) * scale;
-    exportGraphics.text(line, (width * scale) / 2, y);
+    const x = getTextAnchorX(textWidth(line)) * scale;
+    exportGraphics.text(line, x, y);
   }
 
   let now = new Date();
@@ -750,21 +907,33 @@ function draw() {
   }
 
   fill(theme.foreground);
-  textAlign(CENTER, CENTER);
-  drawingContext.font = "bold " + fontSize + "px Helvetica";
+  textAlign(getTextHorizontalAlign(), CENTER);
+  applyTextFont(drawingContext);
 
   for (let i = 0; i < layout.lines.length; i++) {
     const line = layout.lines[i];
     const y = layout.lineYStart + i * layout.lineHeight;
-    text(line, width / 2, y);
+    const x = getTextAnchorX(textWidth(line));
+    text(line, x, y);
   }
 
   if (isGrowing) {
     // Control values are normalized to 0..1 and reused as growth intensity.
     let attractX = null, attractY = null;
 
-    // Sound mode: combine mic level and FFT energy for responsive dynamics.
-    if (mode === 'sound' && micActive && audioInput) {
+    // Sound mode: use the loaded file if present, otherwise fall back to microphone input.
+    if (mode === 'sound' && micActive && soundFile && typeof soundFile.isLoaded === 'function' && soundFile.isLoaded()) {
+      try {
+        audioLevel = soundFile.getLevel();
+        currentAudioLevel = min(1.0, audioLevel * 6.0);
+        if (audioLevel > 0.0001) {
+          micStatusText.textContent = 'Playing file: ' + (audioLevel * 100).toFixed(0) + '%';
+        }
+      } catch (e) {
+        console.error('File audio read error:', e);
+        micStatusText.textContent = 'File unavailable';
+      }
+    } else if (mode === 'sound' && micActive && audioInput) {
       try {
         audioLevel = audioInput.getLevel();
         if (fft) {
