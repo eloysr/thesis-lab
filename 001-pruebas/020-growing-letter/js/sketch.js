@@ -29,6 +29,9 @@ let audioContext;
 let fft;
 let micActive = false;
 let fontSizeTimeout;
+let lastMouseX = null;
+let lastMouseY = null;
+let micReadErrorLogged = false;
 
 const BUILD_TIME = "2026-08-20 18:57:23";
 
@@ -38,22 +41,22 @@ class Branch {
     this.y = y;
     this.prevX = x;
     this.prevY = y;
-    
+
     if (parentAngle !== null) {
-      this.angle = parentAngle + random(-0.3, 0.3);
+      this.angle = parentAngle + random(-0.25, 0.25);
     } else {
       this.angle = angle;
     }
-    
+
     this.baseAngle = this.angle;
     this.distanceTraveled = 0;
     this.lastBranchDistance = 0;
-    
-    let baseInterval = random(30, 60);
+
+    let baseInterval = random(35, 70);
     this.branchInterval = baseInterval / (1 + audioLevel * 25);
     this.speed = 1.0;
-    
-    this.waveOscillation = random(0.05, 0.12);
+
+    this.waveOscillation = random(0.04, 0.12);
     this.wavePhase = random(TWO_PI);
     this.generation = generation;
     this.isActive = true;
@@ -70,19 +73,25 @@ class Branch {
     let waveInfluence = sin(this.wavePhase) * this.waveOscillation;
     let currentAngle = this.baseAngle + waveInfluence;
 
+    let radialAngle = atan2(this.y - letterCenter.y, this.x - letterCenter.x);
+    let outwardAngle = radialAngle;
+
     if (attractX !== null && attractY !== null) {
       let dx = attractX - this.x;
       let dy = attractY - this.y;
       let distance = sqrt(dx * dx + dy * dy);
-      
+
       if (distance > 10) {
         let targetAngle = atan2(dy, dx);
-        currentAngle = lerp(currentAngle, targetAngle, 0.03);
-        this.baseAngle = lerp(this.baseAngle, targetAngle, 0.01);
+        currentAngle = lerp(currentAngle, targetAngle, 0.03 + this.generation * 0.01);
+        this.baseAngle = lerp(this.baseAngle, targetAngle, 0.015 + this.generation * 0.005);
       }
+    } else {
+      currentAngle = lerp(currentAngle, outwardAngle, 0.10);
+      this.baseAngle = lerp(this.baseAngle, outwardAngle, 0.05);
     }
 
-    let maxSpeed = this.speed * growthSpeed;
+    let maxSpeed = this.speed * growthSpeed * (1 + audioLevel * 0.6);
     this.x += cos(currentAngle) * maxSpeed;
     this.y += sin(currentAngle) * maxSpeed;
     this.distanceTraveled += maxSpeed;
@@ -95,10 +104,15 @@ class Branch {
     });
 
     let effectiveInterval = this.branchInterval / (1 + audioLevel * 15);
-    
-    if (this.distanceTraveled - this.lastBranchDistance > effectiveInterval) {
-      if (this.children.length < 12 && this.generation < 5) {
-        let childAngle = currentAngle + random(-PI / 2, PI / 2);
+    let branchProgress = this.distanceTraveled - this.lastBranchDistance;
+    let canBranchByDistance = branchProgress > effectiveInterval;
+    let canBranchByImpulse = random() < (0.001 + audioLevel * 0.02);
+    let shouldBranch = canBranchByDistance || canBranchByImpulse;
+
+    if (shouldBranch) {
+      if (this.children.length < 10 && this.generation < 5) {
+        let branchSpread = this.generation === 0 ? PI / 5 : PI / 4;
+        let childAngle = currentAngle + random(-branchSpread, branchSpread);
         let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel);
         this.children.push(newBranch);
         branches.push(newBranch);
@@ -133,6 +147,7 @@ function setup() {
   micIndicator = document.getElementById('micIndicator');
   micStatusText = document.getElementById('micStatusText');
   timestamp = document.getElementById('timestamp');
+  exportBtn.disabled = false;
 
   letterInput.addEventListener('change', () => {
     letters = letterInput.value || 'A';
@@ -247,17 +262,23 @@ function updateLetterBoundary() {
   }
 
   try {
-    let pixels = pg.drawingContext.getImageData(0, 0, width, height).data;
+    let density = pg.pixelDensity();
+    let step = max(1, floor(density));
+    let sourceWidth = floor(width * density);
+    let sourceHeight = floor(height * density);
+    let pixels = pg.drawingContext.getImageData(0, 0, sourceWidth, sourceHeight).data;
     letterBoundaryPoints = [];
 
     for (let y = 2; y < height - 2; y += 1) {
       for (let x = 2; x < width - 2; x += 1) {
-        let idx = (y * width + x) * 4 + 3;
+        let px = floor(x * density);
+        let py = floor(y * density);
+        let idx = (py * sourceWidth + px) * 4 + 3;
         if (pixels[idx] > 128) {
-          let up = ((y - 1) * width + x) * 4 + 3;
-          let down = ((y + 1) * width + x) * 4 + 3;
-          let left = (y * width + (x - 1)) * 4 + 3;
-          let right = (y * width + (x + 1)) * 4 + 3;
+          let up = ((max(0, py - step) * sourceWidth) + px) * 4 + 3;
+          let down = ((min(sourceHeight - 1, py + step) * sourceWidth) + px) * 4 + 3;
+          let left = (py * sourceWidth + max(0, px - step)) * 4 + 3;
+          let right = (py * sourceWidth + min(sourceWidth - 1, px + step)) * 4 + 3;
           
           if (pixels[up] <= 128 || pixels[down] <= 128 || pixels[left] <= 128 || pixels[right] <= 128) {
             letterBoundaryPoints.push({ x, y });
@@ -281,6 +302,57 @@ function updateLetterBoundary() {
   console.log('✓ Found', letterBoundaryPoints.length, 'boundary points');
 }
 
+function getUniformBoundarySeeds(points, maxSeeds = 260) {
+  if (points.length <= maxSeeds) return points.slice();
+
+  let shuffled = points.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    let j = floor(random(i + 1));
+    let temp = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = temp;
+  }
+
+  let bounds = {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity
+  };
+
+  for (let p of shuffled) {
+    if (p.x < bounds.minX) bounds.minX = p.x;
+    if (p.x > bounds.maxX) bounds.maxX = p.x;
+    if (p.y < bounds.minY) bounds.minY = p.y;
+    if (p.y > bounds.maxY) bounds.maxY = p.y;
+  }
+
+  let area = max(1, (bounds.maxX - bounds.minX) * (bounds.maxY - bounds.minY));
+  let cellSize = max(2, floor(sqrt(area / maxSeeds) * 0.55));
+  let grid = new Set();
+  let seeds = [];
+
+  for (let p of shuffled) {
+    let gx = floor((p.x - bounds.minX) / cellSize);
+    let gy = floor((p.y - bounds.minY) / cellSize);
+    let key = gx + ":" + gy;
+
+    if (!grid.has(key)) {
+      grid.add(key);
+      seeds.push(p);
+      if (seeds.length >= maxSeeds) break;
+    }
+  }
+
+  if (seeds.length < maxSeeds) {
+    for (let i = 0; i < shuffled.length && seeds.length < maxSeeds; i++) {
+      seeds.push(shuffled[i]);
+    }
+  }
+
+  return seeds;
+}
+
 async function startGrowth() {
   console.log('START clicked');
   updateLetterBoundary();
@@ -291,18 +363,18 @@ async function startGrowth() {
     return;
   }
 
-  console.log('Starting growth with', letterBoundaryPoints.length, 'branches');
-
   isGrowing = true;
   branches = [];
   drawnSegments = [];
 
-  let sampleRate = max(1, floor(letterBoundaryPoints.length / 150));
-  for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
-    let point = letterBoundaryPoints[i];
+  let seedPoints = getUniformBoundarySeeds(letterBoundaryPoints, 260);
+  console.log('Starting growth with', seedPoints.length, 'branches');
+  for (let i = 0; i < seedPoints.length; i++) {
+    let point = seedPoints[i];
     let dx = point.x - letterCenter.x;
     let dy = point.y - letterCenter.y;
-    let radialAngle = atan2(dy, dx);
+    let distance = sqrt(dx * dx + dy * dy) || 1;
+    let radialAngle = atan2(dy / distance, dx / distance);
     let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel);
     branches.push(newBranch);
   }
@@ -312,6 +384,7 @@ async function startGrowth() {
   clearBtn.disabled = false;
   letterInput.disabled = true;
   fontSizeSlider.disabled = true;
+  exportBtn.disabled = false;
 
   if (mode === 'sound') {
     try {
@@ -323,6 +396,7 @@ async function startGrowth() {
       }
       audioInput.start();
       micActive = true;
+      micReadErrorLogged = false;
       micIndicator.classList.add('active');
       micStatusText.textContent = 'Listening...';
     } catch (e) {
@@ -338,7 +412,9 @@ function stopGrowth() {
     try {
       audioInput.stop();
       micActive = false;
-    } catch (e) {}
+    } catch (e) {
+      console.error('Mic stop error:', e);
+    }
   }
   micIndicator.classList.remove('active');
   micStatusText.textContent = 'Ready';
@@ -353,6 +429,8 @@ function clearGrowth() {
   stopGrowth();
   branches = [];
   drawnSegments = [];
+  lastMouseX = null;
+  lastMouseY = null;
   redrawCanvas();
 }
 
@@ -419,7 +497,7 @@ function exportPNG() {
   let dateStr = now.toISOString().split('T')[0];
   let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
   if (exportGraphics) {
-    print(exportGraphics, `growing-letter_${dateStr}_${timeStr}`);
+    saveCanvas(exportGraphics.canvas, `growing-letter_${dateStr}_${timeStr}`, 'png');
     exportGraphics.remove();
   }
 }
@@ -468,10 +546,25 @@ function draw() {
         if (audioLevel > 0.01) {
           micStatusText.textContent = 'Listening: ' + (audioLevel * 100).toFixed(0) + '%';
         }
-      } catch (e) {}
+      } catch (e) {
+        if (!micReadErrorLogged) {
+          console.error('Mic read error:', e);
+          micReadErrorLogged = true;
+        }
+        micStatusText.textContent = 'Mic unavailable';
+      }
     } else if (mode === 'mouse') {
       attractX = mouseX;
       attractY = mouseY;
+      if (lastMouseX === null || lastMouseY === null) {
+        currentAudioLevel = 0;
+      } else {
+        let movement = dist(mouseX, mouseY, lastMouseX, lastMouseY);
+        currentAudioLevel = constrain(movement / 20, 0, 1);
+      }
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
+    } else {
       currentAudioLevel = 0;
     }
 
