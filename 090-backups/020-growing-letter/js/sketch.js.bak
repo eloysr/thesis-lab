@@ -1,0 +1,529 @@
+// Growing Letter - Interactive Sound/Mouse-Driven Organic Typography Growth
+// eloy segura @ altura x
+
+let canvas;
+let letters = "A";
+let mode = "sound";
+let isGrowing = false;
+let growthSpeed = 1.0;
+let audioInput;
+let soundFile;
+
+// Growth system
+let branches = [];
+let letterBoundaryPoints = [];
+let letterCenter = { x: 0, y: 0 };
+let fontSize = 160;
+let drawnSegments = [];
+
+// UI Elements
+let letterInput, startBtn, stopBtn, clearBtn, exportBtn;
+let fontSizeSlider, fontSizeValue;
+let modeButtons = {};
+let speedSlider, speedValue;
+let micIndicator, micStatusText;
+let timestamp;
+
+// Audio variables
+let audioLevel = 0;
+let audioContext;
+let fft;
+let micActive = false;
+
+class Branch {
+  constructor(x, y, angle, parentAngle = null, generation = 0) {
+    this.x = x;
+    this.y = y;
+    this.prevX = x;
+    this.prevY = y;
+    
+    // Always use radial direction (with slight variation)
+    if (parentAngle !== null) {
+      this.angle = parentAngle + random(-0.3, 0.3); // Small variation
+    } else {
+      this.angle = angle; // Radial direction from center
+    }
+    
+    this.baseAngle = this.angle;
+    this.distanceTraveled = 0;
+    this.lastBranchDistance = 0;
+    this.branchInterval = random(30, 60);
+    this.speed = 0.8 + random(0.3, 0.8);
+    this.waveOscillation = random(0.05, 0.12); // Less wave for more radial direction
+    this.wavePhase = random(TWO_PI);
+    this.generation = generation;
+    this.isActive = true;
+    this.children = [];
+  }
+
+  update(attractX = null, attractY = null) {
+    if (!this.isActive) return;
+
+    this.prevX = this.x;
+    this.prevY = this.y;
+
+    this.wavePhase += 0.12;
+    let waveInfluence = sin(this.wavePhase) * this.waveOscillation;
+    let currentAngle = this.baseAngle + waveInfluence;
+
+    if (attractX !== null && attractY !== null) {
+      let dx = attractX - this.x;
+      let dy = attractY - this.y;
+      let distance = sqrt(dx * dx + dy * dy);
+      
+      if (distance > 10) {
+        let targetAngle = atan2(dy, dx);
+        currentAngle = lerp(currentAngle, targetAngle, 0.03); // Less influence to maintain radial
+        this.baseAngle = lerp(this.baseAngle, targetAngle, 0.01);
+      }
+    }
+
+    let maxSpeed = this.speed * growthSpeed;
+    this.x += cos(currentAngle) * maxSpeed;
+    this.y += sin(currentAngle) * maxSpeed;
+    this.distanceTraveled += maxSpeed;
+
+    drawnSegments.push({
+      x1: this.prevX,
+      y1: this.prevY,
+      x2: this.x,
+      y2: this.y,
+      opacity: 255
+    });
+
+    if (this.distanceTraveled - this.lastBranchDistance > this.branchInterval) {
+      if (this.children.length < 12 && this.generation < 5) {
+        let childAngle = currentAngle + random(-PI / 2, PI / 2);
+        let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1);
+        this.children.push(newBranch);
+        branches.push(newBranch);
+        this.lastBranchDistance = this.distanceTraveled;
+      }
+    }
+
+    if (this.x < -50 || this.x > width + 50 || this.y < -50 || this.y > height + 50) {
+      this.isActive = false;
+    }
+  }
+}
+
+function setup() {
+  const holder = document.getElementById('sketch-holder');
+  const rect = holder.getBoundingClientRect();
+  
+  canvas = createCanvas(rect.width, rect.height);
+  canvas.parent('sketch-holder');
+
+  letterInput = document.getElementById('letterInput');
+  startBtn = document.getElementById('startBtn');
+  stopBtn = document.getElementById('stopBtn');
+  clearBtn = document.getElementById('clearBtn');
+  exportBtn = document.getElementById('exportBtn');
+  fontSizeSlider = document.getElementById('fontSizeSlider');
+  fontSizeValue = document.getElementById('fontSizeValue');
+  speedSlider = document.getElementById('speedSlider');
+  speedValue = document.getElementById('speedValue');
+  modeButtons.sound = document.getElementById('modeSound');
+  modeButtons.mouse = document.getElementById('modeMouse');
+  micIndicator = document.getElementById('micIndicator');
+  micStatusText = document.getElementById('micStatusText');
+  const audioFile = document.getElementById('audioFile');
+  timestamp = document.getElementById('timestamp');
+
+  letterInput.addEventListener('change', () => {
+    letters = letterInput.value || 'A';
+    updateLetterBoundary();
+    if (!isGrowing) redrawCanvas();
+  });
+
+  fontSizeSlider.addEventListener('input', (e) => {
+    fontSize = parseInt(e.target.value);
+    fontSizeValue.textContent = fontSize;
+    updateLetterBoundary();
+    if (!isGrowing) redrawCanvas();
+  });
+
+  startBtn.addEventListener('click', startGrowth);
+  stopBtn.addEventListener('click', stopGrowth);
+  clearBtn.addEventListener('click', clearGrowth);
+  exportBtn.addEventListener('click', exportPNG);
+
+  speedSlider.addEventListener('input', (e) => {
+    growthSpeed = parseFloat(e.target.value);
+    speedValue.textContent = growthSpeed.toFixed(1) + 'x';
+  });
+
+  modeButtons.sound.addEventListener('click', () => {
+    mode = 'sound';
+    updateModeButtons();
+  });
+
+  modeButtons.mouse.addEventListener('click', () => {
+    mode = 'mouse';
+    updateModeButtons();
+  });
+
+  audioFile.addEventListener('change', (e) => {
+    if (e.target.files[0]) {
+      stopGrowth();
+      let file = e.target.files[0];
+      let url = URL.createObjectURL(file);
+      soundFile = createAudio();
+      soundFile.src = url;
+      micStatusText.textContent = 'File loaded';
+    }
+  });
+
+  updateLetterBoundary();
+  updateTimestamp();
+  setInterval(updateTimestamp, 1000);
+
+  window.addEventListener('resize', () => {
+    const rect = holder.getBoundingClientRect();
+    resizeCanvas(rect.width, rect.height);
+    redrawCanvas();
+  });
+}
+
+function updateModeButtons() {
+  if (mode === 'sound') {
+    modeButtons.sound.classList.add('active');
+    modeButtons.mouse.classList.remove('active');
+  } else {
+    modeButtons.mouse.classList.add('active');
+    modeButtons.sound.classList.remove('active');
+  }
+}
+
+function updateTimestamp() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('es-ES');
+  const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  timestamp.textContent = `v1.0 · eloy segura @ altura x · ${dateStr} ${timeStr}`;
+}
+
+function updateLetterBoundary() {
+  // Render original letter
+  let tempG = createGraphics(width, height);
+  tempG.fill(255);
+  tempG.textAlign(CENTER, CENTER);
+  tempG.drawingContext.font = "bold " + fontSize + "px Helvetica";
+
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = tempG.textWidth(letters[i]);
+    totalWidth += charWidth + 20;
+  }
+
+  let startX = (width - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = tempG.textWidth(char);
+    tempG.text(char, currentX + charWidth / 2, height / 2);
+    currentX += charWidth + 20;
+  }
+
+  // Calculate letter center
+  letterCenter.x = width / 2;
+  letterCenter.y = height / 2;
+
+  let pg = tempG.drawingContext.getImageData(0, 0, width, height);
+  let data = pg.data;
+
+  // Create letter pixel map
+  let isLetterPixel = new Array(width * height);
+  for (let i = 0; i < data.length; i += 4) {
+    isLetterPixel[i / 4] = data[i + 3] > 50;
+  }
+
+  // Detect EXTERNAL edges only using erosion concept:
+  // A pixel is an external edge if it's a letter pixel AND has at least one non-letter neighbor
+  // But we want to exclude internal edges (holes), so we filter by distance from center
+  letterBoundaryPoints = [];
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let idx = y * width + x;
+      
+      if (isLetterPixel[idx]) {
+        // Check if this is an edge (has non-letter neighbor)
+        let isEdge = false;
+        if (!isLetterPixel[idx - width] ||      // up
+            !isLetterPixel[idx + width] ||      // down
+            !isLetterPixel[idx - 1] ||          // left
+            !isLetterPixel[idx + 1]) {          // right
+          isEdge = true;
+        }
+        
+        if (isEdge) {
+          // Check if this is an EXTERNAL edge
+          // External edges are those with more non-letter neighbors in one direction
+          let nonLetterNeighbors = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              let nIdx = (y + dy) * width + (x + dx);
+              if (nIdx >= 0 && nIdx < isLetterPixel.length && !isLetterPixel[nIdx]) {
+                nonLetterNeighbors++;
+              }
+            }
+          }
+          
+          // Keep only if has at least 2 non-letter neighbors (likely external)
+          if (nonLetterNeighbors >= 2) {
+            letterBoundaryPoints.push({ x, y });
+          }
+        }
+      }
+    }
+  }
+
+  tempG.remove();
+}
+
+async function startGrowth() {
+  if (letterBoundaryPoints.length === 0) {
+    return;
+  }
+
+  isGrowing = true;
+  branches = [];
+  drawnSegments = [];
+
+  // Spawn branches from boundary points with RADIAL direction
+  let sampleRate = max(1, floor(letterBoundaryPoints.length / 300));
+  for (let i = 0; i < letterBoundaryPoints.length; i += sampleRate) {
+    let point = letterBoundaryPoints[i];
+    
+    // Calculate radial angle (from center toward the point)
+    let radialAngle = atan2(point.y - letterCenter.y, point.x - letterCenter.x);
+    
+    // Create branch with radial direction
+    let newBranch = new Branch(point.x, point.y, radialAngle);
+    branches.push(newBranch);
+  }
+
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+  clearBtn.disabled = false;
+  letterInput.disabled = true;
+  fontSizeSlider.disabled = true;
+  speedSlider.disabled = false;
+
+  if (mode === 'sound') {
+    try {
+      micStatusText.textContent = 'Requesting mic...';
+      
+      if (!audioInput) {
+        audioInput = new p5.AudioIn();
+      }
+      
+      if (!fft) {
+        fft = new p5.FFT(0.8, 256);
+        fft.setInput(audioInput);
+      }
+      
+      audioInput.start();
+      micActive = true;
+      
+      micIndicator.classList.add('active');
+      micStatusText.textContent = 'Listening...';
+      console.log('✓ Microphone started');
+    } catch (e) {
+      console.error('✗ Microphone error:', e);
+      micStatusText.textContent = 'Mic error: ' + e.message;
+    }
+  }
+}
+
+function stopGrowth() {
+  isGrowing = false;
+
+  if (audioInput && micActive) {
+    try {
+      audioInput.stop();
+      micActive = false;
+      console.log('✓ Microphone stopped');
+    } catch (e) {
+      console.error('✗ Stop error:', e);
+    }
+  }
+
+  micIndicator.classList.remove('active');
+  micStatusText.textContent = 'Ready';
+
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  clearBtn.disabled = false;
+  letterInput.disabled = false;
+  fontSizeSlider.disabled = false;
+  exportBtn.disabled = false;
+}
+
+function clearGrowth() {
+  stopGrowth();
+  branches = [];
+  drawnSegments = [];
+  exportBtn.disabled = true;
+  redrawCanvas();
+}
+
+function redrawCanvas() {
+  background(0);
+  
+  stroke(255);
+  strokeWeight(0.8);
+  for (let seg of drawnSegments) {
+    line(seg.x1, seg.y1, seg.x2, seg.y2);
+  }
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  drawingContext.font = "bold " + fontSize + "px Helvetica";
+
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = textWidth(letters[i]);
+    totalWidth += charWidth + 20;
+  }
+
+  let startX = (width - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = textWidth(char);
+    text(char, currentX + charWidth / 2, height / 2);
+    currentX += charWidth + 20;
+  }
+}
+
+function exportPNG() {
+  let scale = 2;
+  let exportWidth = width * scale;
+  let exportHeight = height * scale;
+
+  let exportGraphics = createGraphics(exportWidth, exportHeight);
+  exportGraphics.background(0);
+
+  exportGraphics.stroke(255);
+  exportGraphics.strokeWeight(0.8 * scale);
+  for (let seg of drawnSegments) {
+    exportGraphics.line(seg.x1 * scale, seg.y1 * scale, seg.x2 * scale, seg.y2 * scale);
+  }
+
+  exportGraphics.fill(255);
+  exportGraphics.textAlign(CENTER, CENTER);
+  exportGraphics.drawingContext.font = "bold " + (fontSize * scale) + "px Helvetica";
+
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = exportGraphics.textWidth(letters[i]);
+    totalWidth += charWidth + 20 * scale;
+  }
+
+  let startX = (exportWidth - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = exportGraphics.textWidth(char);
+    exportGraphics.text(char, currentX + charWidth / 2, exportHeight / 2);
+    currentX += charWidth + 20 * scale;
+  }
+
+  let now = new Date();
+  let dateStr = now.toISOString().split('T')[0];
+  let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+  let filename = `growing-letter_${dateStr}_${timeStr}.png`;
+
+  exportGraphics.save(filename);
+  exportGraphics.remove();
+}
+
+function draw() {
+  background(0);
+
+  stroke(255);
+  strokeWeight(0.8);
+  for (let seg of drawnSegments) {
+    line(seg.x1, seg.y1, seg.x2, seg.y2);
+  }
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  drawingContext.font = "bold " + fontSize + "px Helvetica";
+
+  let totalWidth = 0;
+  for (let i = 0; i < letters.length; i++) {
+    let charWidth = textWidth(letters[i]);
+    totalWidth += charWidth + 20;
+  }
+
+  let startX = (width - totalWidth) / 2;
+  let currentX = startX;
+
+  for (let i = 0; i < letters.length; i++) {
+    let char = letters[i];
+    let charWidth = textWidth(char);
+    text(char, currentX + charWidth / 2, height / 2);
+    currentX += charWidth + 20;
+  }
+
+  if (isGrowing) {
+    let attractX = null;
+    let attractY = null;
+
+    if (mode === 'sound') {
+      if (micActive && audioInput) {
+        try {
+          audioLevel = audioInput.getLevel();
+          
+          if (fft) {
+            let spectrum = fft.analyze();
+            let energy = 0;
+            for (let i = 0; i < spectrum.length; i++) {
+              energy += spectrum[i];
+            }
+            energy = energy / spectrum.length / 255;
+            audioLevel = max(audioLevel, energy);
+          }
+          
+          let rate = 0.5 + audioLevel * 12;
+          growthSpeed = rate * parseFloat(speedSlider.value);
+          
+          if (audioLevel > 0.02) {
+            let percentage = min(100, (audioLevel * 100).toFixed(0));
+            micStatusText.textContent = 'Listening: ' + percentage + '%';
+          }
+        } catch (e) {
+          console.error('Audio error:', e);
+        }
+      }
+    } else if (mode === 'mouse') {
+      attractX = mouseX;
+      attractY = mouseY;
+      growthSpeed = parseFloat(speedSlider.value);
+    }
+
+    for (let i = branches.length - 1; i >= 0; i--) {
+      branches[i].update(attractX, attractY);
+    }
+
+    branches = branches.filter(b => 
+      !(b.x < -100 && b.y < -100 && b.x > width + 100 && b.y > height + 100)
+    );
+
+    if (branches.length > 3000) {
+      branches = branches.slice(-2000);
+    }
+  }
+}
+
+function windowResized() {
+  const holder = document.getElementById('sketch-holder');
+  const rect = holder.getBoundingClientRect();
+  resizeCanvas(rect.width, rect.height);
+}
