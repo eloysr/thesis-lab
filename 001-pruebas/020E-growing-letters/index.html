@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Growing Letter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="control-panel">
+      <div class="panel-header">
+        <h1>GROWING<br>LETTERS</h1>
+      </div>
+
+      <div class="intro-copy">
+        This tool lets you bring your text to life in a random way, based on ambient sound, a recorded sound, or your mouse position. You can download the resulting image.
+      </div>
+
+      <div class="control-separator header-separator"></div>
+
+      <details class="panel-section accordion-section" open>
+        <summary class="accordion-summary">TEXT</summary>
+        <div class="accordion-content">
+          <div class="control-section">
+            <textarea id="letterInput" rows="3" class="letter-input" placeholder="Write a word, phrase or paragraph">A</textarea>
+          </div>
+
+          <div class="control-section">
+            <label for="textAlignSelect">Text Align:</label>
+            <select id="textAlignSelect" class="text-align-select">
+              <option value="center">Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+
+          <div class="control-section">
+            <label for="fontFamilySelect">Font Family:</label>
+            <select id="fontFamilySelect" class="text-align-select">
+              <option value="Helvetica Bold">Helvetica Bold</option>
+              <option value="Helvetica Light">Helvetica Light</option>
+              <option value="Google Elms Sans">Google Elms Sans</option>
+              <option value="Bodoni Moda">Bodoni Moda</option>
+            </select>
+          </div>
+
+          <div class="control-section">
+            <label>Text Color:</label>
+            <div class="swatch-row" id="textColorSwatches" aria-label="Text color swatches">
+              <button class="color-swatch active" data-color="#ffffff" aria-label="White"></button>
+              <button class="color-swatch" data-color="#fff06a" aria-label="Light yellow"></button>
+              <button class="color-swatch" data-color="#ffdd00" aria-label="Yellow"></button>
+              <button class="color-swatch" data-color="#c8b7ff" aria-label="Lavender"></button>
+              <button class="color-swatch" data-color="#b7b7b7" aria-label="Gray"></button>
+              <button class="color-swatch" data-color="#d94fb8" aria-label="Fuchsia"></button>
+              <button class="color-swatch" data-color="#4d8dff" aria-label="Blue"></button>
+              <button class="color-swatch" data-color="#ff6a2e" aria-label="Red"></button>
+              <button class="color-swatch" data-color="#7d8b3a" aria-label="Olive green"></button>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <label for="fontSizeSlider">Font Size:</label>
+            <div class="slider-container">
+              <input type="range" id="fontSizeSlider" min="40" max="800" step="10" value="160" class="slider">
+              <span id="fontSizeValue">160</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <label for="trackingSlider">Tracking:</label>
+            <div class="slider-container">
+              <input type="range" id="trackingSlider" min="0" max="40" step="1" value="10" class="slider">
+              <span id="trackingValue">10</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <label for="lineHeightSlider">Interlineado:</label>
+            <div class="slider-container">
+              <input type="range" id="lineHeightSlider" min="0.5" max="2" step="0.01" value="0.9" class="slider">
+              <span id="lineHeightValue">0.90</span>
+            </div>
+          </div>
+
+          <div class="button-row compact">
+            <button id="invertBtn" class="btn btn-invert">INVERT</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="panel-section accordion-section">
+        <summary class="accordion-summary">EFFECT & PLAY</summary>
+        <div class="accordion-content">
+          <div class="control-section">
+            <div class="effect-toggle-row">
+              <button id="modeSound" class="mode-btn active" data-mode="sound">MIC</button>
+              <label for="audioFile" class="mode-btn file-button">UPLOAD FILE</label>
+              <input type="file" id="audioFile" accept="audio/*" class="hidden-file-input">
+            </div>
+            <button id="modeMouse" class="mode-btn" data-mode="mouse">MOUSE</button>
+          </div>
+
+          <div class="mic-status-row">
+            <div id="micIndicator" class="mic-indicator off"></div>
+            <span id="micStatusText">Ready</span>
+          </div>
+
+          <div class="control-section">
+            <label for="speedSlider">Speed:</label>
+            <div class="slider-container">
+              <input type="range" id="speedSlider" min="0" max="1" step="0.01" value="0.5" class="slider">
+              <span id="speedValue">0.50</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <label for="effectTransparencySlider">Transparency:</label>
+            <div class="slider-container">
+              <input type="range" id="effectTransparencySlider" min="0" max="1" step="0.01" value="1" class="slider">
+              <span id="effectTransparencyValue">1</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <label for="filamentThicknessSlider">Filament Thickness:</label>
+            <div class="slider-container">
+              <input type="range" id="filamentThicknessSlider" min="0.2" max="4" step="0.1" value="1" class="slider">
+              <span id="filamentThicknessValue">1</span>
+            </div>
+          </div>
+
+          <div class="button-group vertical">
+            <button id="startBtn" class="btn btn-primary">PLAY</button>
+            <button id="stopBtn" class="btn btn-secondary" disabled>PAUSE</button>
+            <button id="clearBtn" class="btn btn-secondary" disabled>CLEAR</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="panel-section accordion-section">
+        <summary class="accordion-summary">EXPORT</summary>
+        <div class="accordion-content">
+          <button id="exportBtn" class="btn btn-export" disabled>EXPORT PNG</button>
+        </div>
+      </details>
+
+      <details class="panel-section accordion-section">
+        <summary class="accordion-summary">CREDITS</summary>
+        <div class="accordion-content footer-panel">
+          <div class="footer">
+            <div id="timestamp" class="timestamp"></div>
+          </div>
+        </div>
+      </details>
+
+      <div class="panel-section">
+        <a href="../../000-inicio/" class="btn btn-back">back to index</a>
+      </div>
+    </div>
+
+    <div id="sketch-holder" class="canvas-container"></div>
+  </div>
+
+  <script src="js/sketch.js?v=2026-08-23-1604"></script>
+</body>
+</html>
