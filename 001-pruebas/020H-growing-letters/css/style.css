@@ -229,6 +229,7 @@ body.invert-theme .letter-input::placeholder {
 
 .swatch-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
 }
@@ -236,6 +237,7 @@ body.invert-theme .letter-input::placeholder {
 .color-swatch {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 0;
@@ -247,9 +249,7 @@ body.invert-theme .letter-input::placeholder {
 .color-swatch[data-color="#ffdd00"] { background: #ffdd00; }
 .color-swatch[data-color="#4d8dff"] { background: #4d8dff; }
 .color-swatch[data-color="#ff6a2e"] { background: #ff6a2e; }
-.color-swatch[data-color="#7d8b3a"] { background: #7d8b3a; }
 .color-swatch[data-color="#b7b7b7"] { background: #b7b7b7; }
-.color-swatch[data-color="#d94fb8"] { background: #d94fb8; }
 .color-swatch[data-color="#fff06a"] { background: #fff06a; }
 .color-swatch[data-color="#c8b7ff"] { background: #c8b7ff; }
 .color-swatch[data-color="#000000"] { background: #000000; }
