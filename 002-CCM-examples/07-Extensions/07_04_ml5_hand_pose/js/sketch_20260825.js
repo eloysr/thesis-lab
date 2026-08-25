@@ -38,14 +38,14 @@ let handPose;                     // ml5.handPose AI model
 let hands = [];                   // Array storing detected hand data
 
 // Text Settings
-const letters = ["el", "verano", "se", "acabó"];  // Available words to display
-let activeLetterIndex = 0;        // Which word is currently active (0=index, 1=middle, 2=ring, 3=pinky)
+const letters = "HAND";           // Available letters to display
+let activeLetterIndex = 0;        // Which letter is currently active (0=A, 1=B, 2=C, 3=D)
 
 // Visual Styling
 const fontFamily = "helvetica";   // Font for drawing letters
-const textSizeMin = 30;           // Smallest possible text size
+const textSizeMin = 50;           // Smallest possible text size
 const textSizeMax = 500;          // Largest possible text size
-const textColor = '#eef5d3';    // Text color
+const textColor = '#ffffff';    // Text color
 const markerColor = '#0055ff';  // Color of finger markers (white)
 const markerSize = 30;            // Size of finger markers in pixels
 
@@ -98,13 +98,10 @@ function gotHands(results) {
 function draw() {
   // Clear the canvas with a black background
   background(0);
-
+  
   // Draw the webcam video (mirrored and dimmed)
   drawVideoFeed();
-
-  // Draw a marker on every detected hand keypoint
-  drawAllHandKeypoints();
-
+  
   // Draw the letter and finger markers
   drawCurrentLetter();
 }
@@ -120,8 +117,8 @@ function drawVideoFeed() {
   translate(width, 0);
   scale(-1, 1);
   
-  // Apply an orange color filter to the video
-  tint(255, 140, 0);
+  // Dim the video to 40% opacity so text is more visible
+  tint(255, 40);  // Dynamic dimming based on mouse X position
   
   // Calculate how to scale video to fill canvas while maintaining aspect ratio
   let videoAspect = video.width / video.height;
@@ -153,21 +150,6 @@ function drawVideoFeed() {
 
 // –––––––––––––––––––––––––––––––––––––––––––––––––––––––
 // Hand Tracking & Letter Display
-
-// Draw a small marker on every keypoint of every detected hand
-function drawAllHandKeypoints() {
-  fill(255, 255, 255, 150);
-  noStroke();
-
-  for (let hand of hands) {
-    for (let point of hand.keypoints) {
-      // Reuse the same scale/offset/mirror transform as the video feed
-      let x = width - (point.x * videoScale - videoOffsetX);
-      let y = point.y * videoScale - videoOffsetY;
-      circle(x, y, 10);
-    }
-  }
-}
 
 function drawCurrentLetter() {
   // Exit if no hands are detected
