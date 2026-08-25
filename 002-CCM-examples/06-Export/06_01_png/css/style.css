@@ -1,0 +1,41 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Remove default spacing and make the page span the full viewport. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  /* Prevent browser scrollbars while rendering a full-screen canvas. */
+  overflow: hidden;
+}
+
+/* Remove inline spacing behavior from canvas elements. */
+canvas {
+  display: block;
+}
+
+/* Save button fixed in the bottom-right corner. */
+.save-btn {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 100;
+  padding: 10px 30px;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  font-family: monospace;
+  border: 1px solid#fff;
+  cursor: pointer;
+  mix-blend-mode: difference;
+}
+
+.save-btn:hover {
+ 
+  color: #000;
+    background: #fff;
+}

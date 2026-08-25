@@ -1,0 +1,75 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Remove default spacing and make the page span the full viewport. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  /* Prevent browser scrollbars while rendering a full-screen canvas. */
+  overflow: hidden;
+}
+
+/* Remove inline spacing behavior from canvas elements. */
+canvas {
+  display: block;
+}
+
+#interface-left {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  flex-shrink: 0;
+  width:  300px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#interface-right {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  flex-shrink: 0;
+  width: 150px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-outline {
+  width: 100%;
+  background: black;
+  color: white;
+  border: 1px solid white;
+  border-radius: 999px;
+  font-family: 'monospace', monospace;
+  font-size: 16px;
+  padding: 12px 24px 12px 24px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-outline:hover {
+  background: white;
+  color: black;
+  border-color: white;
+}
+
+.btn-outline:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}

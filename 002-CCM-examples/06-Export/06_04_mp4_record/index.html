@@ -1,0 +1,51 @@
+<!--
+    This HTML file loads styles, libraries, and the project files.
+    The canvas itself is created dynamically in js/sketch.js.
+  -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <!-- Basic document metadata and responsive behavior. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Browser tab title. -->
+  <title>Export MP4 Record</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- External libraries -->
+  <script src="libraries/p5.js"></script>
+  <script src="libraries/h264-mp4-encoder.web.js"></script>
+
+  <!-- Project files -->
+  <script src="js/curve.js"></script>
+  <script src="js/interface.js"></script>
+  <script src="js/MP4Export.js"></script>
+  <script src="js/sketch.js"></script>
+
+</head>
+
+<body>
+  <!-- The p5.js canvas is injected here at runtime. -->
+  <div id="interface">
+    <div class="ctrl-row">
+      <button class="btn-outline" onclick="clearCurves()">clear</button>
+    </div>
+    <div class="ctrl-row">
+      <button class="btn-outline" id="exportBtn" onclick="recorder.start()">record</button>
+      <button class="btn-outline" id="stopBtn" onclick="recorder.stop()" style="display:none">stop</button>
+      <button class="btn-outline" id="cancelBtn" onclick="recorder.cancel()" style="display:none">cancel</button>
+    </div>
+    <div class="ctrl-row" id="recStatus" style="display:none">
+      <span class="rec-dot"></span>
+      <span id="recTimer">00:00</span>
+    </div>
+  </div>
+</body>
+
+</html>

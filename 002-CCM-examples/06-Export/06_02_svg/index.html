@@ -1,0 +1,50 @@
+<!--
+    This HTML file loads styles, libraries, and the project files.
+    The canvas itself is created dynamically in js/sketch.js.
+  -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <!-- Basic document metadata and responsive behavior. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Browser tab title. -->
+  <title>Export SVG</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- External libraries -->
+  <script src="libraries/p5.js"></script>
+  <script src="libraries/p5.svg.js"></script>
+  
+  <!-- Project files -->
+  <script src="js/sketch.js"></script>
+
+</head>
+
+<body>
+
+  <!-- TOP RIGHT: Reset & Download -->
+  <div class="icon-group icon-group--top-right">
+    <img class="icon" src="assets/reset.svg" onclick="reset()" draggable="false">
+    <img class="icon" src="assets/download.svg" onclick="exportSVG()" draggable="false">
+  </div>
+
+  <!-- BOTTOM RIGHT: Grid Size & Color Toggle -->
+  <div class="icon-group icon-group--bottom-right">
+    <img class="icon" src="assets/minus.svg" id="gridMinus" draggable="false" onclick="setGridSize('-')">
+    <img class="icon" src="assets/plus.svg" id="gridPlus" draggable="false" onclick="setGridSize('+')">
+    <div class="color-toggle" onclick="setColor()">
+      <img src="assets/color-black.svg" id="colorToggleBlack" draggable="false">
+      <img src="assets/color-white.svg" id="colorToggleWhite" style="visibility: hidden;" draggable="false">
+    </div>
+  </div>
+
+</body>
+
+</html>

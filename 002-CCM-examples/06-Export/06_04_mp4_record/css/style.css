@@ -1,0 +1,161 @@
+
+ /* ––––– GLOBAL VARIABLES –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+:root {
+  /* ––– Colors ––– */
+  --clr-bg:          hsl(0, 0%, 0%);     /* Page background                       */
+  --clr-dim:         rgba(0, 0, 0, 0.9); /* Dim overlay background                */
+  --clr-box:         hsl(0, 0%, 8%);     /* Panel section background              */
+  --clr-border:      hsl(0, 0%, 30%);    /* Borders and outlines                  */
+  --clr-text:        hsl(0, 0%, 100%);   /* Primary text and active controls      */
+
+  /* ––– Border radius ––– */
+  --radius-pill:     999px;  /* Fully rounded buttons and dropdowns   */
+
+  /* ––– Layout ––– */
+  --if-width:     200px;  /* Fixed width of the control panel      */
+  --if-gap:       10px;    /* Gap between panel sections            */
+
+  /* ––– Typography ––– */
+  --font-size:        15px;    /* Base font size used throughout the panel */
+  --font-size-big:    40px;    /* Large font size for overlay text         */
+  --letter-spacing:   0.05em;  /* Default letter spacing                   */
+}
+
+
+/* ––––– FONTS –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+@font-face {
+  font-family: 'Barlow';
+  src: url('../assets/Barlow-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Barlow';
+  src: url('../assets/Barlow-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+/* Remove default spacing and make the page span the full viewport. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--clr-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  /* Prevent page-level scrollbars */
+  user-select: none; /* Prevent text selection when dragging across the page */
+}
+
+/* Remove inline spacing behavior from canvas elements. */
+canvas {
+  display: block;
+  outline: 1px solid var(--clr-border);
+  overflow: hidden;
+}
+
+#interface {
+  position: fixed;
+  top: 50px;
+  right: 50px;
+  flex-shrink: 0;
+  width: var(--if-width);
+  max-height: 100%;
+  overflow-y: none; /* Allow the panel to scroll if content is tall */
+  background: transparent;
+  font-family: 'Barlow', 'Arial Black', Arial, sans-serif;
+  font-size: var(--font-size);
+  font-weight: 700; /* Bold by default; overridden to 400 inside section bodies */
+  color: var(--clr-text);
+  letter-spacing: var(--letter-spacing);
+  scrollbar-width: thin;
+  scrollbar-color: var(--clr-border) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: var(--if-gap);
+}
+
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 25px;
+}
+
+.btn-outline {
+  width: 100%;
+  background: transparent;
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--font-size);
+  letter-spacing: var(--letter-spacing);
+    padding: 3px 15px 5px 15px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-outline:hover {
+  background: var(--clr-text);
+  color: var(--clr-box);
+  border-color: var(--clr-text);
+}
+
+.btn-outline:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+#stopBtn {
+  color: #34c759;
+  border-color: #34c759;
+}
+#stopBtn:hover {
+  background: #34c759;
+  color: #000;
+  border-color: #34c759;
+}
+
+#cancelBtn {
+  color: #ff3b30;
+  border-color: #ff3b30;
+}
+#cancelBtn:hover {
+  background: #ff3b30;
+  color: #000;
+  border-color: #ff3b30;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b30;
+  flex-shrink: 0;
+  animation: rec-blink 1s ease-in-out infinite;
+}
+
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+#recTimer {
+  font-size: var(--font-size);
+  letter-spacing: var(--letter-spacing);
+  color: var(--clr-text);
+}

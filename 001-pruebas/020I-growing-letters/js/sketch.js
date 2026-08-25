@@ -1150,7 +1150,7 @@ function exportPNG() {
   let dateStr = now.toISOString().split('T')[0];
   let timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
   if (exportGraphics) {
-    saveCanvas(exportGraphics.canvas, `growing-letter_${dateStr}_${timeStr}`, 'png');
+    saveCanvas(exportGraphics.canvas, `growing-letters_${dateStr}_${timeStr}`, 'png');
     exportGraphics.remove();
   }
 }
