@@ -23,8 +23,8 @@
 
 
 // Speech Recognition
-const speechLanguage = 'en-EN';   // Language code (en-US for English, de-DE for German, etc.)
-const clearCommands = ['clear'];  // Voice commands to clear the screen
+const speechLanguage = 'es-ES';   // Language code (en-US for English, de-DE for German, etc.)
+const clearCommands = ['clear', 'limpia'];  // Voice commands to clear the screen
 
 // Timing
 const minFramesBetweenWords = 15;  // Minimum frames between creating new word objects (15 frames ≈ 0.25s at 60fps)
@@ -39,7 +39,7 @@ const positionRangeX = 50;   // Random offset range from center (horizontal)
 const positionRangeY = 50;   // Random offset range from center (vertical)
 
 // Rotation & Wiggle
-const rotationRange = Math.PI / 4;   // Maximum rotation angle difference between words (45 degrees)
+const rotationRange = Math.PI / 24;  // Maximum tilt away from horizontal, per word (7.5 degrees)
 const wiggleSpeedMin = 0.005;        // Minimum wiggle oscillation speed
 const wiggleSpeedMax = 0.02;         // Maximum wiggle oscillation speed
 const wiggleAmplitudeMin = 0.02;     // Minimum wiggle rotation amplitude (in radians)
@@ -132,7 +132,7 @@ function draw() {
     fill(255, 100);
     textSize(24);
     textAlign(CENTER, CENTER);
-    text("Speak a word...", width/2, height/2);
+    text("di una palabra...", width/2, height/2);
   }
 }
 
@@ -189,9 +189,8 @@ class WordObject {
     this.x = width / 2 + random(-positionRangeX, positionRangeX);
     this.y = height / 2 + random(-positionRangeY, positionRangeY);
     
-    // Rotation (cumulative angle with random variation)
-    let prevAngle = wordObjects.length === 0 ? 0 : wordObjects[wordObjects.length - 1].angle;
-    this.angle = prevAngle + random(-rotationRange, rotationRange);
+    // Rotation (small random tilt around horizontal, independent per word)
+    this.angle = random(-rotationRange, rotationRange);
     
     // Layout
     this.yOffset = this.size * 0.15;  // Vertical text offset for better centering

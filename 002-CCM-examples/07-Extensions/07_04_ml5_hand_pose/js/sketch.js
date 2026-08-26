@@ -38,12 +38,12 @@ let handPose;                     // ml5.handPose AI model
 let hands = [];                   // Array storing detected hand data
 
 // Text Settings
-const letters = ["el", "verano", "se", "acabó"];  // Available words to display
-let activeLetterIndex = 0;        // Which word is currently active (0=index, 1=middle, 2=ring, 3=pinky)
+const letters = "ABCD";           // Available letters to display
+let activeLetterIndex = 0;        // Which letter is currently active (0=A, 1=B, 2=C, 3=D)
 
 // Visual Styling
 const fontFamily = "helvetica";   // Font for drawing letters
-const textSizeMin = 30;           // Smallest possible text size
+const textSizeMin = 50;           // Smallest possible text size
 const textSizeMax = 500;          // Largest possible text size
 const textColor = '#eef5d3';    // Text color
 const markerColor = '#0055ff';  // Color of finger markers (white)
@@ -154,13 +154,21 @@ function drawVideoFeed() {
 // –––––––––––––––––––––––––––––––––––––––––––––––––––––––
 // Hand Tracking & Letter Display
 
-// Draw a small marker on every keypoint of every detected hand
+// Fingertip keypoint indices, in the same order as activeLetterIndex (0=index, 1=middle, 2=ring, 3=pinky)
+const fingerKeypointIndices = [8, 12, 16, 20];
+
+// Draw a small marker only on the thumb and the currently active finger, for every detected hand
 function drawAllHandKeypoints() {
   fill(255, 255, 255, 150);
   noStroke();
 
+  let selectedIndices = [4, fingerKeypointIndices[activeLetterIndex]];
+
   for (let hand of hands) {
-    for (let point of hand.keypoints) {
+    for (let i of selectedIndices) {
+      let point = hand.keypoints[i];
+      if (!point) continue;
+
       // Reuse the same scale/offset/mirror transform as the video feed
       let x = width - (point.x * videoScale - videoOffsetX);
       let y = point.y * videoScale - videoOffsetY;
@@ -267,15 +275,23 @@ function drawLetter(positions, letterSize) {
   // Calculate the midpoint between thumb and finger
   let midX = (positions.thumbX + positions.fingerX) / 2;
   let midY = (positions.thumbY + positions.fingerY) / 2;
-  
+
+  // Calculate the angle between thumb and finger so the letter follows the hand's tilt
+  let angle = atan2(positions.fingerY - positions.thumbY, positions.fingerX - positions.thumbX);
+
+  push();
+  translate(midX, midY);
+  rotate(angle);
+
   // Set text appearance
   fill(textColor);
   noStroke();
   textAlign(CENTER, CENTER);
   textSize(letterSize);
-  
-  // Draw the letter
-  text(letters[activeLetterIndex], midX, midY);
+
+  // Draw the letter at the origin, already translated/rotated into place
+  text(letters[activeLetterIndex], 0, 0);
+  pop();
 }
 
 // Draw white circles on the thumb and active finger

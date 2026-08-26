@@ -201,9 +201,15 @@ class Branch {
     // a visibly deep, layered structure.
     if (shouldBranch) {
       if (this.children.length < (this.generation < 2 ? 1 : 2) && this.generation < 5) {
-        let spreadBase = this.generation === 0 ? PI / 12 : PI / 8;
-        let branchSpread = spreadBase * (0.8 + random(0.6, 1.5));
-        let childAngle = currentAngle + random(-branchSpread, branchSpread);
+        // Child branches aim close to perpendicular (90°) off the parent's current direction,
+        // picking a side (left/right) at random and adding a small organic jitter around that
+        // 90° mark — instead of a wide fan starting from 0°, which let children spawn almost
+        // parallel to their parent just as often as at an angle. Applied the same way to every
+        // generation, including the root branches seeded on the letter contour (generation 0).
+        let jitterBase = PI / 12; // ~15° of organic wobble around the perpendicular angle
+        let jitter = jitterBase * (0.8 + random(0.6, 1.5));
+        let side = random() < 0.5 ? 1 : -1;
+        let childAngle = currentAngle + side * (HALF_PI + random(-jitter, jitter));
         let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel, this.centerX, this.centerY);
         newBranch.strokeWeight = max(1.4, this.strokeWeight * 0.9);
         this.children.push(newBranch);
