@@ -97,6 +97,17 @@ function dibujarTextoSegmentado(textoARenderizar, x, y, fontFamily, bold, size =
   }
 }
 
+function dibujarTextoMultilinea(textoCompleto, x, yCentro, fontFamily, bold, size = tamañoTexto) {
+  const lineas = textoCompleto.split("\n");
+  const alturaLinea = size * 1.2;
+  const alturaTotal = alturaLinea * (lineas.length - 1);
+  const yInicio = yCentro - alturaTotal / 2;
+
+  lineas.forEach((linea, indice) => {
+    dibujarTextoSegmentado(linea, x, yInicio + indice * alturaLinea, fontFamily, bold, size);
+  });
+}
+
 function aplicarFuenteSeleccionada(opcion) {
   if (!opcion) {
     return;
@@ -193,20 +204,20 @@ function setup() {
   botonFondo.addClass("color-dropdown-button");
   botonFondo.mousePressed(togglePaletaFondo);
 
-  const textoEntradaEtiqueta = createDiv("Write your text here");
+  const textoEntradaEtiqueta = createDiv("Write your text here (multiple lines allowed)");
   textoEntradaEtiqueta.parent(uiPanel);
   textoEntradaEtiqueta.style("color", "#fff");
   textoEntradaEtiqueta.style("font-size", "0.95rem");
   textoEntradaEtiqueta.style("padding", "0 0.25rem");
   textoEntradaEtiqueta.style("text-align", "left");
 
-  entradaTexto = createInput("");
+  entradaTexto = createElement("textarea");
+  entradaTexto.addClass("text-textarea");
   entradaTexto.attribute("placeholder", "Text loading...");
   entradaTexto.parent(uiPanel);
-  entradaTexto.style("width", "100%");
   entradaTexto.input(() => guardarConfiguracion());
   entradaTexto.elt.addEventListener("keydown", (evento) => {
-    if (evento.key === "Enter") {
+    if (evento.key === "Enter" && (evento.metaKey || evento.ctrlKey)) {
       evento.preventDefault();
       aplicarTextoPersonalizado();
     }
@@ -725,9 +736,5 @@ function draw() {
     nivel = mic.getLevel();
   }
 
-  const anchoTexto = medirAnchoTexto(texto, fuenteTexto, esNegrita, tamañoTexto);
-  const xInicio = width / 2 - anchoTexto / 2;
-  const y = height / 2;
-
-  dibujarTextoSegmentado(texto, xInicio + anchoTexto / 2, y, fuenteTexto, esNegrita, tamañoTexto);
+  dibujarTextoMultilinea(texto, width / 2, height / 2, fuenteTexto, esNegrita, tamañoTexto);
 }

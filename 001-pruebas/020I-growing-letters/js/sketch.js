@@ -98,24 +98,28 @@ class Branch {
 
     // Branching interval shrinks when control intensity increases.
     // audioLevel is 0..~1 here, so louder sound / faster mouse movement means children spawn sooner.
-    // Widened from the original random(60, 120) so branches spawn children a bit less often —
-    // this slows how fast the total branch/segment population grows in a long session (helps
-    // performance) while keeping the same branching look, just slightly less dense over time.
-    let baseInterval = random(80, 140);
+    // Raised again (was random(300, 550)) so that in near-silence a tendril rarely travels far
+    // enough to hit this by distance before it leaves the canvas — real branching now comes almost
+    // entirely from live audioLevel (see effectiveInterval/canBranchByImpulse in update()).
+    let baseInterval = random(700, 1000);
     this.branchInterval = baseInterval / (1 + audioLevel * 25);
     this.speed = 0.9 + random(0.15, 0.5);
 
-    // Organic wobble to mimic root tips and capillary motion.
-    // wavePhase advances every frame (see update()) and waveOscillation scales how visible the wiggle is.
-    this.waveOscillation = random(0.01, 0.045);
+    // Gentle wobble, kept subtle (was random(0.01, 0.045)) so tendrils read as deliberate curves
+    // rather than jittery hair — the tip-curling spiral (see curlRate below) carries the organic feel.
+    this.waveOscillation = random(0.004, 0.014);
     this.wavePhase = random(TWO_PI);
     this.generation = generation; // 0 = seeded directly from the letter contour, increases with each child branch.
     this.isActive = true; // Set to false once the branch leaves the canvas bounds (see update()).
     this.children = [];
-    this.curveBias = random(-0.15, 0.15); // Slight per-branch offset so radial/inward targets aren't perfectly aligned.
-    this.tipSensitivity = random(0.8, 1.6); // Multiplies how strongly this branch steers toward its radial target.
-    this.rootDominance = random(0.8, 1.5); // Multiplies rootBias; higher = branch holds its own direction more stubbornly.
-    this.strokeWeight = 1.2 + random(0.0, 1.2) + this.generation * 0.12; // Slightly thicker for later generations.
+    // Constant per-branch turn rate, picked once at birth (random direction, never zero). Applied
+    // every frame in update(), scaled by how far the branch has traveled — so it starts nearly
+    // straight and curves into a loose, open arc near its tip, like a vine tendril or fiddlehead
+    // fern. Halved from random(0.025, 0.055) — that range coiled tips into tight closed loops.
+    this.curlRate = (random() < 0.5 ? 1 : -1) * random(0.012, 0.026);
+    // Thick, fairly uniform stroke (was 1.2 + random(0,1.2) + generation*0.12) to read as a bold
+    // vine rather than a hair-thin filament.
+    this.strokeWeight = 6 + random(-1.5, 1.5) - this.generation * 0.8;
   }
 
   update(attractX = null, attractY = null, audioLevel = 0) {
@@ -129,19 +133,6 @@ class Branch {
     this.wavePhase += 0.04 + this.generation * 0.01;
     let waveInfluence = sin(this.wavePhase) * this.waveOscillation;
 
-    // Only branches created from the interior contour are allowed to grow inward.
-    // Boundary seeds keep their natural radial spread, but their target is always shifted toward the center.
-    // radialAngle points AWAY from this branch's anchor center (outward spread for child branches, generation > 0).
-    // inwardAngle points TOWARD the anchor center (used only for generation 0, the seeds planted on the letter contour,
-    // so the very first filaments curve back into the glyph before fanning out).
-    let radialAngle = atan2(this.y - this.centerY, this.x - this.centerX);
-    let inwardAngle = atan2(this.centerY - this.y, this.centerX - this.x);
-    let radialTarget = (this.generation === 0) ? inwardAngle + this.curveBias : radialAngle + this.curveBias;
-
-    // rootBias is how strongly the branch is pulled toward radialTarget each frame (only used when there's no
-    // mouse/audio attractor point below); it grows slightly with generation so child branches settle into their
-    // spread direction faster than the root branch does.
-    let rootBias = (0.03 + this.generation * 0.01) * this.rootDominance;
     let currentAngle = this.baseAngle + waveInfluence;
 
     // In mouse mode, filaments still aim toward the cursor but retain a soft organic drift.
@@ -161,9 +152,13 @@ class Branch {
         this.baseAngle = lerp(this.baseAngle, targetAngle + organicOffset * 0.5, mousePull * 0.75);
       }
     } else {
-      // Sound mode (or no attractor): steer gently toward the precomputed radial/inward target instead of the cursor.
-      currentAngle = lerp(currentAngle, radialTarget, rootBias * this.tipSensitivity);
-      this.baseAngle = lerp(this.baseAngle, radialTarget, rootBias * 0.75);
+      // Sound mode (or no attractor): no pull toward any shared target — each tendril just turns at
+      // its own constant curlRate (set once at birth), ramped in by how far it's traveled so far.
+      // Early on curlStrength is near 0 (the tendril grows in a fairly straight line); the ramp
+      // (was /220) is stretched to /360 so it reaches full curlRate more gradually, opening the
+      // tip into a loose curve instead of a tightly closed loop.
+      let curlStrength = constrain(this.distanceTraveled / 360, 0, 1);
+      this.baseAngle += this.curlRate * curlStrength;
     }
 
     // Growth speed scales with global slider and current control intensity (audioLevel or mouse-movement magnitude).
@@ -187,31 +182,35 @@ class Branch {
     tctx.stroke();
 
     // A branch can spawn a child either because it has traveled far enough since its last child
-    // (canBranchByDistance) OR by a small random per-frame chance that increases with audioLevel
-    // (canBranchByImpulse), so louder/faster input produces noticeably bushier growth.
-    let effectiveInterval = this.branchInterval / (1 + audioLevel * 8);
+    // (canBranchByDistance) OR by a random per-frame chance (canBranchByImpulse) — both are now
+    // driven almost entirely by live audioLevel rather than a fixed baseline: in near-silence,
+    // effectiveInterval stays close to the (now much larger) base branchInterval, which a tendril
+    // will rarely travel far enough to reach before leaving the canvas, and canBranchByImpulse has
+    // no constant floor at all (was 0.0008) — so quiet input produces barely any new branches.
+    // Loud input compresses the interval sharply and drives the impulse chance up, so a loud burst
+    // visibly bushes the growth out instead of just curling existing tendrils faster.
+    // (Tuned down from *15 / *0.05 — that combination hit the branch population cap within ~2
+    // seconds of loud input, which read as an instant jump rather than a visible bushing-out.)
+    let effectiveInterval = this.branchInterval / (1 + audioLevel * 6);
     let branchProgress = this.distanceTraveled - this.lastBranchDistance;
     let canBranchByDistance = branchProgress > effectiveInterval;
-    let canBranchByImpulse = random() < (0.0008 + audioLevel * 0.012);
+    let canBranchByImpulse = random() < (audioLevel * 0.006);
     let shouldBranch = canBranchByDistance || canBranchByImpulse;
 
-    // Create fewer, farther-spaced root branches to feel more dominant and separated.
-    // Max generation trimmed from 6 to 5: each generation compounds the total branch population, so
-    // one fewer level noticeably slows long-session growth in branch/segment count while still leaving
-    // a visibly deep, layered structure.
+    // Raised the structural cap (was 1 child / generation < 2) so loud audio actually has room to
+    // produce visibly more branches — at low audio shouldBranch above rarely fires anyway, so the
+    // vine stays sparse by default; this ceiling only matters once the input is driving it.
     if (shouldBranch) {
-      if (this.children.length < (this.generation < 2 ? 1 : 2) && this.generation < 5) {
-        // Child branches aim close to perpendicular (90°) off the parent's current direction,
-        // picking a side (left/right) at random and adding a small organic jitter around that
-        // 90° mark — instead of a wide fan starting from 0°, which let children spawn almost
-        // parallel to their parent just as often as at an angle. Applied the same way to every
-        // generation, including the root branches seeded on the letter contour (generation 0).
-        let jitterBase = PI / 12; // ~15° of organic wobble around the perpendicular angle
-        let jitter = jitterBase * (0.8 + random(0.6, 1.5));
+      if (this.children.length < 3 && this.generation < 4) {
+        // Every child branch splits off at exactly 60° from its parent's current direction — no
+        // jitter, no range, the same fixed angle every single time. Only the side (left/right) is
+        // randomized, so branches still fan out both ways instead of all spiralling one direction.
+        // Applied the same way to every generation, including the root branches seeded on the
+        // letter contour (generation 0).
         let side = random() < 0.5 ? 1 : -1;
-        let childAngle = currentAngle + side * (HALF_PI + random(-jitter, jitter));
+        let childAngle = currentAngle + side * (PI / 3);
         let newBranch = new Branch(this.x, this.y, childAngle, currentAngle, this.generation + 1, audioLevel, this.centerX, this.centerY);
-        newBranch.strokeWeight = max(1.4, this.strokeWeight * 0.9);
+        newBranch.strokeWeight = max(3, this.strokeWeight * 0.85);
         this.children.push(newBranch);
         branches.push(newBranch);
         this.lastBranchDistance = this.distanceTraveled;
@@ -917,8 +916,9 @@ async function startGrowth() {
   branches = [];
   trailBuffer.clear();
 
-  // Mouse mode uses a lighter seed count to keep the motion responsive and less crowded.
-  let seedLimit = mode === 'mouse' ? 60 : 260;
+  // Sparse vine look: far fewer starting tendrils than before (was 60/260) so each one reads as
+  // its own distinct curling strand instead of blending into a dense mass.
+  let seedLimit = mode === 'mouse' ? 12 : 22;
   let seedPoints = getUniformBoundarySeeds(letterBoundaryPoints, seedLimit);
   console.log('Starting growth with', seedPoints.length, 'branches');
   for (let i = 0; i < seedPoints.length; i++) {
@@ -950,7 +950,13 @@ async function startGrowth() {
     let dy = point.y - anchor.y;
     let distance = sqrt(dx * dx + dy * dy) || 1;
     let radialAngle = atan2(dy / distance, dx / distance);
-    let newBranch = new Branch(point.x, point.y, radialAngle, null, 0, currentAudioLevel, anchor.x, anchor.y);
+    // Wide random offset from the purely radial direction (was radialAngle alone) — without this,
+    // every tendril starts out pointing straight away from the letter's center, so the whole
+    // growth always reads as a radially symmetric burst no matter how the branches curl afterward.
+    // This lets tendrils set off in genuinely varied directions, some barely deviating from radial,
+    // others heading almost sideways or back across the glyph.
+    let seedAngle = radialAngle + random(-PI * 0.7, PI * 0.7);
+    let newBranch = new Branch(point.x, point.y, seedAngle, null, 0, currentAudioLevel, anchor.x, anchor.y);
     branches.push(newBranch);
   }
 
