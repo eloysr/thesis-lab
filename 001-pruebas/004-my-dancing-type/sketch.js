@@ -16,18 +16,23 @@ let paletaColores;
 let paletaFondo;
 let paletaTamano;
 let paletaTransparencia;
+let paletaInterlineado;
 let botonTransparencia;
+let botonInterlineado;
 let botonReset;
 let sliderTransparencia;
 let displayTransparencia;
 let sliderTamano;
 let displayTamano;
+let sliderInterlineado;
+let displayInterlineado;
 let colorTexto = [255, 255, 255];
 let colorFondo = [32, 32, 32];
 let tamañoTexto = 80;
 let fuenteTexto = "Helvetica";
 let esNegrita = false;
 let transparenciaTexto = 100;
+let interlineado = 1.2;
 let textoPersonalizado = false;
 let swatchSeleccionadoTexto;
 let swatchSeleccionadoFondo;
@@ -99,7 +104,7 @@ function dibujarTextoSegmentado(textoARenderizar, x, y, fontFamily, bold, size =
 
 function dibujarTextoMultilinea(textoCompleto, x, yCentro, fontFamily, bold, size = tamañoTexto) {
   const lineas = textoCompleto.split("\n");
-  const alturaLinea = size * 1.2;
+  const alturaLinea = size * interlineado;
   const alturaTotal = alturaLinea * (lineas.length - 1);
   const yInicio = yCentro - alturaTotal / 2;
 
@@ -138,6 +143,7 @@ const DEFAULT_CONFIG = {
   colorFondo: "#202020",
   tamañoTexto: 80,
   transparenciaTexto: 100,
+  interlineado: 1.2,
   fuenteSeleccionada: "Helvetica Bold"
 };
 
@@ -210,6 +216,8 @@ function setup() {
   textoEntradaEtiqueta.style("font-size", "0.95rem");
   textoEntradaEtiqueta.style("padding", "0 0.25rem");
   textoEntradaEtiqueta.style("text-align", "left");
+  textoEntradaEtiqueta.style("max-width", "180px");
+  textoEntradaEtiqueta.style("white-space", "normal");
 
   entradaTexto = createElement("textarea");
   entradaTexto.addClass("text-textarea");
@@ -276,6 +284,13 @@ function setup() {
   botonTransparencia.style("height", "2.5rem");
   botonTransparencia.addClass("color-dropdown-button");
   botonTransparencia.mousePressed(togglePaletaTransparencia);
+
+  botonInterlineado = createButton(`Line height · ${interlineado.toFixed(2)}`);
+  botonInterlineado.parent(uiPanel);
+  botonInterlineado.style("width", "auto");
+  botonInterlineado.style("height", "2.5rem");
+  botonInterlineado.addClass("color-dropdown-button");
+  botonInterlineado.mousePressed(togglePaletaInterlineado);
 
   const separadorOpciones = createDiv();
   separadorOpciones.parent(uiPanel);
@@ -383,6 +398,43 @@ function setup() {
   sliderTransparencia.elt.addEventListener("click", (evento) => evento.stopPropagation());
   sliderTransparencia.elt.addEventListener("mousedown", (evento) => evento.stopPropagation());
 
+  paletaInterlineado = createDiv();
+  paletaInterlineado.addClass("option-palette");
+  paletaInterlineado.position(20, 260);
+  paletaInterlineado.style("display", "none");
+
+  const interlineadoLabel = createDiv("Line height");
+  interlineadoLabel.addClass("option-item");
+  interlineadoLabel.parent(paletaInterlineado);
+  interlineadoLabel.style("justify-content", "flex-start");
+  interlineadoLabel.style("cursor", "default");
+  interlineadoLabel.style("background", "transparent");
+  interlineadoLabel.style("border", "none");
+  interlineadoLabel.style("box-shadow", "none");
+
+  displayInterlineado = createDiv(interlineado.toFixed(2));
+  displayInterlineado.addClass("option-item");
+  displayInterlineado.parent(paletaInterlineado);
+  displayInterlineado.style("justify-content", "center");
+  displayInterlineado.style("background", "rgba(255,255,255,0.08)");
+  displayInterlineado.style("border", "1px solid rgba(255,255,255,0.15)");
+  displayInterlineado.style("cursor", "default");
+
+  sliderInterlineado = createSlider(0.5, 3, interlineado, 0.05);
+  sliderInterlineado.parent(paletaInterlineado);
+  sliderInterlineado.style("width", "100%");
+  sliderInterlineado.input(() => {
+    interlineado = parseFloat(sliderInterlineado.value());
+    botonInterlineado.html(`Line height · ${interlineado.toFixed(2)}`);
+    displayInterlineado.html(interlineado.toFixed(2));
+    guardarConfiguracion();
+  });
+  sliderInterlineado.changed(() => {
+    paletaInterlineado.style("display", "none");
+  });
+  sliderInterlineado.elt.addEventListener("click", (evento) => evento.stopPropagation());
+  sliderInterlineado.elt.addEventListener("mousedown", (evento) => evento.stopPropagation());
+
   const paleta256 = generarPaleta256();
   paleta256.forEach((color, index) => {
     const swatch = createDiv();
@@ -422,10 +474,12 @@ function setup() {
   paletaFondo.elt.addEventListener("click", (evento) => evento.stopPropagation());
   paletaTamano.elt.addEventListener("click", (evento) => evento.stopPropagation());
   paletaTransparencia.elt.addEventListener("click", (evento) => evento.stopPropagation());
+  paletaInterlineado.elt.addEventListener("click", (evento) => evento.stopPropagation());
   botonColor.elt.addEventListener("click", (evento) => evento.stopPropagation());
   botonFondo.elt.addEventListener("click", (evento) => evento.stopPropagation());
   botonTamano.elt.addEventListener("click", (evento) => evento.stopPropagation());
   botonTransparencia.elt.addEventListener("click", (evento) => evento.stopPropagation());
+  botonInterlineado.elt.addEventListener("click", (evento) => evento.stopPropagation());
 
   aplicarConfigInicial(config);
   botonColor.html(`Color · ${colorSeleccionadoHex}`);
@@ -436,6 +490,9 @@ function setup() {
   botonTransparencia.html(`Transparency · ${transparenciaTexto}%`);
   sliderTransparencia.value(transparenciaTexto);
   displayTransparencia.html(`${transparenciaTexto}%`);
+  botonInterlineado.html(`Line height · ${interlineado.toFixed(2)}`);
+  sliderInterlineado.value(interlineado);
+  displayInterlineado.html(interlineado.toFixed(2));
   selectorFuente.selected(config.fuenteSeleccionada || DEFAULT_CONFIG.fuenteSeleccionada);
   const seleccionFuente = opcionesFuentes.find((opcion) => opcion.label === selectorFuente.value());
   if (seleccionFuente) {
@@ -506,6 +563,7 @@ function togglePaletaColores() {
   paletaFondo.style("display", "none");
   paletaTamano.style("display", "none");
   paletaTransparencia.style("display", "none");
+  paletaInterlineado.style("display", "none");
 }
 
 function togglePaletaFondo() {
@@ -514,6 +572,7 @@ function togglePaletaFondo() {
   paletaColores.style("display", "none");
   paletaTamano.style("display", "none");
   paletaTransparencia.style("display", "none");
+  paletaInterlineado.style("display", "none");
 }
 
 function togglePaletaTamano() {
@@ -522,6 +581,7 @@ function togglePaletaTamano() {
   paletaColores.style("display", "none");
   paletaFondo.style("display", "none");
   paletaTransparencia.style("display", "none");
+  paletaInterlineado.style("display", "none");
 }
 
 function togglePaletaTransparencia() {
@@ -530,6 +590,16 @@ function togglePaletaTransparencia() {
   paletaColores.style("display", "none");
   paletaFondo.style("display", "none");
   paletaTamano.style("display", "none");
+  paletaInterlineado.style("display", "none");
+}
+
+function togglePaletaInterlineado() {
+  const display = paletaInterlineado.style("display");
+  paletaInterlineado.style("display", display === "none" ? "grid" : "none");
+  paletaColores.style("display", "none");
+  paletaFondo.style("display", "none");
+  paletaTamano.style("display", "none");
+  paletaTransparencia.style("display", "none");
 }
 
 function generarPaleta256() {
@@ -591,6 +661,7 @@ function guardarConfiguracion() {
     colorFondo: colorFondoHex,
     tamañoTexto,
     transparenciaTexto,
+    interlineado,
     fuenteSeleccionada: selectorFuente ? selectorFuente.value() : "Helvetica Bold"
   };
 
@@ -641,6 +712,13 @@ function aplicarConfigAlEstado(config) {
     }
   }
 
+  if (typeof config.interlineado === "number" || typeof config.interlineado === "string") {
+    const inter = Number(config.interlineado);
+    if (!Number.isNaN(inter)) {
+      interlineado = inter;
+    }
+  }
+
   if (typeof config.fuenteSeleccionada === "string") {
     const opcionesFuentes = [
       { label: "Helvetica Bold", family: "Helvetica", style: "bold" },
@@ -688,6 +766,13 @@ function aplicarConfigInicial(config) {
     }
   }
 
+  if (typeof config.interlineado === "number" || typeof config.interlineado === "string") {
+    const inter = Number(config.interlineado);
+    if (!Number.isNaN(inter)) {
+      interlineado = inter;
+    }
+  }
+
   if (config.fuenteSeleccionada) {
     const opcionesFuentes = [
       { label: "Helvetica Bold", family: "Helvetica", style: "bold" },
@@ -715,6 +800,9 @@ function resetConfiguracion() {
   botonTransparencia.html(`Transparency · ${transparenciaTexto}%`);
   sliderTransparencia.value(transparenciaTexto);
   displayTransparencia.html(`${transparenciaTexto}%`);
+  botonInterlineado.html(`Line height · ${interlineado.toFixed(2)}`);
+  sliderInterlineado.value(interlineado);
+  displayInterlineado.html(interlineado.toFixed(2));
   selectorFuente.selected(DEFAULT_CONFIG.fuenteSeleccionada);
   const seleccionFuente = opcionesFuentes.find((opcion) => opcion.label === selectorFuente.value());
   if (seleccionFuente) {
