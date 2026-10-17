@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Abrir prueba en Safari",
+      "type": "shell",
+      // Opens the file you currently have open in the editor directly in Safari,
+      // bypassing whatever the system default browser is set to.
+      "command": "open -a Safari \"${file}\"",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
