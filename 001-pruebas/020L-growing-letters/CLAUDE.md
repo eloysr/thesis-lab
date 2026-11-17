@@ -255,3 +255,4 @@ Duplicate of 020K (v4.0, including the export letter-spacing fix and the free te
    - **Avoid Grace** → `AVOID_GRACE` (0–80 px, default 18). Live.
    - **Occupancy Cell** → `OCC_CELL` (2–20 px, default 5). Rebuilds the grid via `resetOccupancy()`; locked from Play until Clear (`setLetterConfigurationLocked()`), so the grid in use always matches the value.
    The four constants are now `let` instead of `const`.
+2. Tracking slider accepts negative values (`index.html`, `trackingSlider` min -40, was 0) so letters can be tightened or overlapped. No JS change needed: `tracking` is simply added between glyphs everywhere it's used.
