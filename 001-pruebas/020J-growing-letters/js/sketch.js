@@ -50,6 +50,11 @@ let transientLevel = 0;
 // Slow-moving average of the overall level, used as the transient detector's baseline: a reading
 // that jumps well above its own recent average reads as a "hit" rather than sustained loudness.
 let smoothedLevel = 0;
+// Minimum combined mid+transient reading needed before any branch is allowed to split at all (see
+// hasSoundPresence in Branch.update()). Below this, ambient mic noise / near-silence / a stationary
+// mouse produces pure, unbranched growth — just a slow line, no forks — regardless of how long a
+// branch has been traveling. Only real sound (or real mouse movement) unlocks branching.
+const SOUND_PRESENCE_THRESHOLD = 0.02;
 
 // On-canvas session timers: playElapsedStart is set the moment Play is pressed and ticks live (real
 // time, via millis()) while growing. The moment Pause is pressed, playFrozenMs captures the elapsed
@@ -222,7 +227,13 @@ class Branch {
     let branchProgress = this.distanceTraveled - this.lastBranchDistance;
     let canBranchByDistance = branchProgress > effectiveInterval;
     let canBranchByImpulse = random() < (mid * 0.003 + transient * 0.05);
-    let shouldBranch = canBranchByDistance || canBranchByImpulse;
+    // Branching itself requires actual sound (or, in mouse mode, actual movement) to be present at
+    // all — below SOUND_PRESENCE_THRESHOLD, canBranchByDistance would still eventually turn true on
+    // its own (effectiveInterval is finite even at mid=0), so without this gate a branch would
+    // eventually split even in total silence. With it, true silence / a still mouse reads as pure,
+    // unbranched growth — just a slow curling line — no matter how far the branch has traveled.
+    let hasSoundPresence = (mid + transient) > SOUND_PRESENCE_THRESHOLD;
+    let shouldBranch = hasSoundPresence && (canBranchByDistance || canBranchByImpulse);
 
     // Raised the structural cap (was 1 child / generation < 2) so loud audio actually has room to
     // produce visibly more branches — at low audio shouldBranch above rarely fires anyway, so the

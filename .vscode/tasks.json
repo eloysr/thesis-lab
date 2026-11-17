@@ -2,10 +2,31 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Abrir prueba en Safari",
+      "label": "Servir prueba y abrir en Safari",
       "type": "shell",
-      // Opens the file you currently have open in the editor directly in Safari,
-      // bypassing whatever the system default browser is set to.
+      // p5.js sketches that read canvas pixels (getImageData, used here to trace the letter
+      // contours), load web fonts, use fetch(), or ask for the microphone misbehave or fail
+      // silently when opened directly as file:// — Safari treats that as an insecure/opaque
+      // origin. Serving the current test's folder over http://localhost fixes all of that.
+      // Frees port 8080 first (in case a previous run's server from a different test folder is
+      // still holding it), serves the folder of whichever file is open in the editor, waits a
+      // moment for the server to come up, then opens it in Safari.
+      "command": "bash",
+      "args": [
+        "-c",
+        "lsof -ti:8080 | xargs kill -9 >/dev/null 2>&1; cd \"${fileDirname}\" && (python3 -m http.server 8080 >/dev/null 2>&1 &) ; sleep 1 && open -a Safari \"http://localhost:8080/\""
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Abrir prueba en Safari (file://, sin servidor)",
+      "type": "shell",
+      // Kept for simple static pages that don't need a server. Not suitable for the p5.js
+      // sketches (fonts/canvas pixel reads/mic won't work) — use the task above for those.
       "command": "open -a Safari \"${file}\"",
       "presentation": {
         "reveal": "silent",
