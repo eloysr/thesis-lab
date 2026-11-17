@@ -51,16 +51,12 @@
           </div>
 
           <div class="control-section">
-            <label>Text Color:</label>
-            <div class="swatch-row" id="textColorSwatches" aria-label="Text color swatches">
-              <button class="color-swatch active" data-color="#ffffff" aria-label="White"></button>
-              <button class="color-swatch" data-color="#000000" aria-label="Black"></button>
-              <button class="color-swatch" data-color="#fff06a" aria-label="Light yellow"></button>
-              <button class="color-swatch" data-color="#ffdd00" aria-label="Yellow"></button>
-              <button class="color-swatch" data-color="#c8b7ff" aria-label="Lavender"></button>
-              <button class="color-swatch" data-color="#b7b7b7" aria-label="Gray"></button>
-              <button class="color-swatch" data-color="#4d8dff" aria-label="Blue"></button>
-              <button class="color-swatch" data-color="#ff6a2e" aria-label="Red"></button>
+            <label for="textColorPicker">Text Color:</label>
+            <div class="color-picker-row">
+              <span class="color-picker" id="textColorSwatch">
+                <input type="color" id="textColorPicker" value="#ffffff" aria-label="Text color">
+              </span>
+              <span class="color-picker-value" id="textColorValue">#ffffff</span>
             </div>
           </div>
 

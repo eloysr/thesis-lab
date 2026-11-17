@@ -69,7 +69,7 @@ let pauseElapsedStart = null;
 // UI element references.
 let letterInput, startBtn, stopBtn, clearBtn, exportBtn, invertBtn;
 let textAlignSelect, fontFamilySelect;
-let textColorSwatches;
+let textColorPicker, textColorValue, textColorSwatch;
 let fontSizeSlider, fontSizeValue;
 let trackingSlider, trackingValue;
 let lineHeightSlider, lineHeightValue;
@@ -344,7 +344,9 @@ function setup() {
   letterInput = document.getElementById('letterInput');
   textAlignSelect = document.getElementById('textAlignSelect');
   fontFamilySelect = document.getElementById('fontFamilySelect');
-  textColorSwatches = Array.from(document.querySelectorAll('.color-swatch'));
+  textColorPicker = document.getElementById('textColorPicker');
+  textColorValue = document.getElementById('textColorValue');
+  textColorSwatch = document.getElementById('textColorSwatch');
   startBtn = document.getElementById('startBtn');
   stopBtn = document.getElementById('stopBtn');
   clearBtn = document.getElementById('clearBtn');
@@ -409,15 +411,19 @@ function setup() {
     if (!isGrowing) redrawCanvas();
   });
 
-  textColorSwatches.forEach((swatch) => {
-    swatch.addEventListener('click', () => {
-      if (isGrowing) return;
-      textColor = swatch.dataset.color || '#ffffff';
-      textColorAuto = false;
-      textColorSwatches.forEach((button) => button.classList.toggle('active', button === swatch));
-      updateLetterBoundary();
-      if (!isGrowing) redrawCanvas();
-    });
+  // Free color picker: 'input' fires continuously while dragging inside the native picker, so the
+  // canvas previews the color live. Ignored while growing (same rule the old swatches had) — the
+  // picker is snapped back to the current color so it never shows a value that wasn't applied.
+  textColorPicker.addEventListener('input', (event) => {
+    if (isGrowing) {
+      syncTextColorPicker();
+      return;
+    }
+    textColor = event.target.value || '#ffffff';
+    textColorAuto = false;
+    syncTextColorPicker();
+    updateLetterBoundary();
+    redrawCanvas();
   });
 
   // Debounced contour rebuild while dragging font size.
@@ -586,12 +592,20 @@ function updateInvertButton() {
   invertBtn.textContent = invertColors ? 'change to dark mode' : 'change to light mode';
 }
 
+// Mirrors textColor into the color picker, its visible color box and hex label (e.g. after the theme toggle changes it).
+function syncTextColorPicker() {
+  if (!textColorPicker) return;
+  textColorPicker.value = textColor;
+  if (textColorSwatch) textColorSwatch.style.background = textColor;
+  if (textColorValue) textColorValue.textContent = textColor;
+}
+
 function toggleInvertColors() {
   invertColors = !invertColors;
   document.body.classList.toggle('invert-theme', invertColors);
   if (textColorAuto) {
     textColor = invertColors ? '#000000' : '#ffffff';
-    textColorSwatches.forEach((button) => button.classList.toggle('active', button.dataset.color === textColor));
+    syncTextColorPicker();
   }
   updateInvertButton();
   if (!isGrowing) redrawCanvas();
@@ -1235,7 +1249,10 @@ function exportPNG() {
 
     for (let j = 0; j < line.length; j++) {
       const char = line[j];
-      const charWidth = exportGraphics.textWidth(char) * scale;
+      // Measure on the main canvas (font at the unscaled fontSize, same as getLineWidth()) and scale up.
+      // exportGraphics.textWidth() would measure with the already-scaled font, so multiplying it by
+      // scale again doubled the advance and pushed every letter after the first out of place.
+      const charWidth = textWidth(char) * scale;
       // Same left-edge placement as redrawCanvas()/draw() — see note there.
       exportGraphics.text(char, currentX, y);
       currentX += charWidth + (char === ' ' ? tracking * 0.6 * scale : tracking * scale);
