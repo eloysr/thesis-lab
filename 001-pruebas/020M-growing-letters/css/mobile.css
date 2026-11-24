@@ -1,0 +1,317 @@
+/* ===== v6.0 — touch interface (020M) =====
+   Desktop keeps the v5.0 layout untouched. On phones and tablets (narrow screens, or any screen whose
+   main input is a finger) the left panel becomes a drawer that slides over the canvas, the canvas takes
+   the whole screen, and a bar with large buttons (MENU · PLAY · PAUSE · CLEAR · PNG) stays at the bottom.
+   The bar buttons only forward taps to the real panel buttons (js/mobile-ui.js), so the logic in
+   sketch.js is unchanged. */
+
+.mobile-bar,
+.menu-backdrop,
+.menu-close {
+  display: none;
+}
+
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    font-size: 16px;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* p5 creates a temporary canvas (inside a <main> it adds to <body>) before setup() moves it into
+     #sketch-holder. In this column layout it would steal height while setup() measures the holder,
+     so keep it out of the flow. */
+  body > main,
+  body > canvas {
+    position: absolute;
+    visibility: hidden;
+  }
+
+  /* Canvas: whole screen above the bar. */
+  .container {
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: row;
+  }
+
+  .canvas-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    touch-action: none;           /* a finger on the canvas drives MOUSE mode, it must not scroll the page */
+  }
+
+  canvas {
+    touch-action: none;
+  }
+
+  /* ----- Drawer ----- */
+  .control-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(88vw, 400px);
+    max-height: none;
+    height: auto;
+    padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left));
+    gap: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: none;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+  }
+
+  body.menu-open .control-panel {
+    transform: translateX(0);
+  }
+
+  .menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  body.menu-open .menu-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .panel-header h1 {
+    font-size: 24px;
+  }
+
+  .menu-close {
+    display: block;
+    flex: none;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  body.invert-theme .menu-close {
+    border-color: rgba(29, 26, 23, 0.35);
+  }
+
+  .intro-copy {
+    font-size: 13px;
+  }
+
+  .header-separator {
+    margin: 12px 0 8px;
+  }
+
+  /* ----- Big touch targets inside the drawer ----- */
+  .accordion-summary {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+  }
+
+  .accordion-content {
+    gap: 14px;
+  }
+
+  .control-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .control-section label {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  /* 16px minimum stops iOS from zooming the page when a field gets focus */
+  .letter-input,
+  .text-align-select,
+  select,
+  textarea,
+  input {
+    font-size: 16px;
+  }
+
+  .text-align-select {
+    min-height: 48px;
+  }
+
+  .letter-input {
+    min-height: 96px;
+  }
+
+  .color-picker,
+  .color-picker input[type="color"] {
+    width: 48px;
+    height: 48px;
+  }
+
+  .slider-container {
+    min-height: 44px;
+    gap: 12px;
+  }
+
+  .slider {
+    height: 6px;
+  }
+
+  .slider::-webkit-slider-thumb {
+    width: 30px;
+    height: 30px;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+  }
+
+  .slider-container span {
+    min-width: 52px;
+    font-size: 14px;
+    text-align: right;
+  }
+
+  .btn,
+  .mode-btn,
+  .file-button,
+  .btn-back {
+    min-height: 52px;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+  }
+
+  .effect-toggle-row {
+    gap: 10px;
+  }
+
+  .effect-toggle-row .mode-btn,
+  #modeMouse {
+    flex: 1;
+    width: 100%;
+  }
+
+  .button-group.vertical {
+    gap: 10px;
+  }
+
+  #micStatusText {
+    font-size: 14px;
+  }
+
+  /* ----- Bottom bar ----- */
+  .mobile-bar {
+    display: flex;
+    flex: none;
+    gap: 8px;
+    padding: 8px calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+    background: #0a0a0a;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    z-index: 30;
+  }
+
+  body.invert-theme .mobile-bar {
+    background: #f4f0eb;
+    border-top-color: rgba(29, 26, 23, 0.14);
+  }
+
+  .mbtn {
+    flex: 1;
+    min-height: 52px;
+    padding: 0 6px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    background: transparent;
+    color: #ffffff;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mbtn-menu {
+    flex: 1.3;
+  }
+
+  .mbtn-play {
+    flex: 1.3;
+    background: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+  }
+
+  .mbtn:disabled {
+    opacity: 0.3;
+  }
+
+  body.invert-theme .mbtn {
+    color: #1d1a17;
+    border-color: rgba(29, 26, 23, 0.35);
+  }
+
+  body.invert-theme .mbtn-play {
+    background: #1d1a17;
+    color: #f4f0eb;
+    border-color: #1d1a17;
+  }
+}
+
+/* Very short screens (phone in landscape): slimmer bar so the letter keeps its room. */
+@media (max-height: 500px) {
+  .mbtn {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .mobile-bar {
+    padding-top: 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Narrow phones in portrait: five buttons have to fit in ~375px. */
+@media (max-width: 430px) {
+  .mobile-bar {
+    gap: 6px;
+  }
+
+  .mbtn {
+    padding: 0 2px;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+}
